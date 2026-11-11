@@ -1,0 +1,185 @@
+﻿
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="QuanLyVatLieuXayDung.MainPage"
+             BackgroundColor="#F3F4F6">
+
+    <Grid ColumnDefinitions="240,*">
+
+        <!-- SIDEBAR: MENU BÊN TRÁI -->
+        <VerticalStackLayout Grid.Column="0"
+                             BackgroundColor="#172554"
+                             Padding="20,30"
+                             Spacing="20">
+
+            <!-- Tên phần mềm -->
+            <Label Text="VLXD MANAGER"
+                   FontSize="20"
+                   FontAttributes="Bold"
+                   TextColor="White"
+                   HorizontalOptions="Center"/>
+
+            <Label Text="QUẢN LÝ CỬA HÀNG"
+                   FontSize="11"
+                   TextColor="#BFDBFE"
+                   HorizontalOptions="Center"/>
+
+            <BoxView HeightRequest="1"
+                     Color="#475569"
+                     Margin="0,10"/>
+
+            <!-- Các mục điều hướng -->
+            <Button Text="Trang chủ"
+                    BackgroundColor="#2563EB"
+                    TextColor="White"
+                    HorizontalOptions="Fill"
+                    CornerRadius="8"/>
+
+            <Button Text="Sản phẩm"
+                    BackgroundColor="Transparent"
+                    TextColor="White"
+                    HorizontalOptions="Fill"
+                    CornerRadius="8"/>
+
+            <Button Text="Khách hàng"
+                    BackgroundColor="Transparent"
+                    TextColor="White"
+                    HorizontalOptions="Fill"
+                    CornerRadius="8"/>
+
+            <Button Text="Nhà cung cấp"
+                    BackgroundColor="Transparent"
+                    TextColor="White"
+                    HorizontalOptions="Fill"
+                    CornerRadius="8"/>
+
+            <Button Text="Hóa đơn"
+                    BackgroundColor="Transparent"
+                    TextColor="White"
+                    HorizontalOptions="Fill"
+                    CornerRadius="8"/>
+
+            <Button Text="Thống kê"
+                    BackgroundColor="Transparent"
+                    TextColor="White"
+                    HorizontalOptions="Fill"
+                    CornerRadius="8"/>
+
+        </VerticalStackLayout>
+
+        <!-- KHU VỰC NỘI DUNG BÊN PHẢI -->
+        <Grid Grid.Column="1"
+              RowDefinitions="70,*"
+              Padding="25">
+
+            <!-- Thanh tiêu đề -->
+            <Label Grid.Row="0"
+                   Text="Tổng quan"
+                   FontSize="26"
+                   FontAttributes="Bold"
+                   TextColor="#172554"
+                   VerticalOptions="Center"/>
+
+            <!-- Nội dung trang chủ -->
+            
+<!-- Nội dung trang chủ -->
+<ScrollView Grid.Row="1">
+    <VerticalStackLayout Spacing="20">
+
+        <Label Text="Chào mừng đến với hệ thống quản lý cửa hàng vật liệu xây dựng!"
+               FontSize="18"
+               FontAttributes="Bold"
+               TextColor="#374151"/>
+
+        <Label Text="Tổng quan hoạt động kinh doanh"
+               FontSize="15"
+               TextColor="#6B7280"/>
+
+        <!-- KHU VỰC THỐNG KÊ -->
+        <Grid ColumnDefinitions="*,*,*"
+              ColumnSpacing="15">
+
+            <!-- Thẻ tổng sản phẩm -->
+            <Border Grid.Column="0"
+                    BackgroundColor="White"
+                    Stroke="#E5E7EB"
+                    StrokeThickness="1"
+                    Padding="18"
+                    StrokeShape="RoundRectangle 12">
+
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Tổng sản phẩm"
+                           FontSize="14"
+                           TextColor="#6B7280"/>
+
+                    <Label Text="120"
+                           FontSize="30"
+                           FontAttributes="Bold"
+                           TextColor="#2563EB"/>
+
+                    <Label Text="Sản phẩm trong kho"
+                           FontSize="12"
+                           TextColor="#9CA3AF"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Thẻ hóa đơn -->
+            <Border Grid.Column="1"
+                    BackgroundColor="White"
+                    Stroke="#E5E7EB"
+                    StrokeThickness="1"
+                    Padding="18"
+                    StrokeShape="RoundRectangle 12">
+
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Hóa đơn hôm nay"
+                           FontSize="14"
+                           TextColor="#6B7280"/>
+
+                    <Label Text="15"
+                           FontSize="30"
+                           FontAttributes="Bold"
+                           TextColor="#059669"/>
+
+                    <Label Text="Hóa đơn đã tạo"
+                           FontSize="12"
+                           TextColor="#9CA3AF"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Thẻ doanh thu -->
+            <Border Grid.Column="2"
+                    BackgroundColor="White"
+                    Stroke="#E5E7EB"
+                    StrokeThickness="1"
+                    Padding="18"
+                    StrokeShape="RoundRectangle 12">
+
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Doanh thu hôm nay"
+                           FontSize="14"
+                           TextColor="#6B7280"/>
+
+                    <Label Text="25.000.000 đ"
+                           FontSize="26"
+                           FontAttributes="Bold"
+                           TextColor="#EA580C"/>
+
+                    <Label Text="Doanh thu minh họa"
+                           FontSize="12"
+                           TextColor="#9CA3AF"/>
+                </VerticalStackLayout>
+            </Border>
+
+        </Grid>
+
+    </VerticalStackLayout>
+</ScrollView>
+
+
+        </Grid>
+
+    </Grid>
+
+</ContentPage>

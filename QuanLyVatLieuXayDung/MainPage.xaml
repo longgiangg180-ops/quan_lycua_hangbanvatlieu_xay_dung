@@ -86,7 +86,7 @@
               Padding="25">
 
             <!-- Thanh ti�u d? -->
-          <Label   x:Name="PageTitle"git diff --check
+          <Label   x:Name="PageTitle"
                    Grid.Row="0"
                    Text="T?ng quan"
                    FontSize="26"

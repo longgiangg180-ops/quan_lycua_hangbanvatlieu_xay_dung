@@ -6,20 +6,20 @@
 
     <Grid ColumnDefinitions="240,*">
 
-        <!-- SIDEBAR: MENU BÊN TRÁI -->
+        <!-- SIDEBAR: MENU B�N TR�I -->
         <VerticalStackLayout Grid.Column="0"
                              BackgroundColor="#172554"
                              Padding="20,30"
                              Spacing="20">
 
-            <!-- Tên phần mềm -->
+            <!-- T�n ph?n m?m -->
             <Label Text="VLXD MANAGER"
                    FontSize="20"
                    FontAttributes="Bold"
                    TextColor="White"
                    HorizontalOptions="Center"/>
 
-            <Label Text="QUẢN LÝ CỬA HÀNG"
+            <Label Text="QU?N L� C?A H�NG"
                    FontSize="11"
                    TextColor="#BFDBFE"
                    HorizontalOptions="Center"/>
@@ -28,78 +28,90 @@
                      Color="#475569"
                      Margin="0,10"/>
 
-            <!-- Các mục điều hướng -->
-            <Button Text="Trang chủ"
-                    BackgroundColor="#2563EB"
-                    TextColor="White"
-                    HorizontalOptions="Fill"
-                    CornerRadius="8"/>
+            <!-- C�c m?c di?u hu?ng -->
+            <!-- C�c m?c di?u hu?ng -->
+<Button x:Name="HomeButton"
+        Text="Trang ch?"
+        BackgroundColor="#2563EB"
+        TextColor="White"
+        HorizontalOptions="Fill"
+        CornerRadius="8"
+        Clicked="OnHomeClicked"/>
 
-            <Button Text="Sản phẩm"
-                    BackgroundColor="Transparent"
-                    TextColor="White"
-                    HorizontalOptions="Fill"
-                    CornerRadius="8"/>
+<Button x:Name="ProductsButton"
+        Text="S?n ph?m"
+        BackgroundColor="Transparent"
+        TextColor="White"
+        HorizontalOptions="Fill"
+        CornerRadius="8"
+        Clicked="OnProductsClicked"/>
 
-            <Button Text="Khách hàng"
-                    BackgroundColor="Transparent"
-                    TextColor="White"
-                    HorizontalOptions="Fill"
-                    CornerRadius="8"/>
+<Button x:Name="CustomersButton"
+       Text="Kh�ch h�ng"
+        BackgroundColor="Transparent"
+        TextColor="White"
+        HorizontalOptions="Fill"
+        CornerRadius="8"
+        Clicked="OnCustomersClicked"/>
 
-            <Button Text="Nhà cung cấp"
-                    BackgroundColor="Transparent"
-                    TextColor="White"
-                    HorizontalOptions="Fill"
-                    CornerRadius="8"/>
+<Button x:Name="SuppliersButton"
+        Text="Nh� cung c?p"
+        BackgroundColor="Transparent"
+        TextColor="White"
+        HorizontalOptions="Fill"
+        CornerRadius="8"
+        Clicked="OnSuppliersClicked"/>
 
-            <Button Text="Hóa đơn"
-                    BackgroundColor="Transparent"
-                    TextColor="White"
-                    HorizontalOptions="Fill"
-                    CornerRadius="8"/>
+<Button x:Name="InvoicesButton"
+        Text="H�a don"
+        BackgroundColor="Transparent"
+        TextColor="White"
+        HorizontalOptions="Fill"
+        CornerRadius="8"
+        Clicked="OnInvoicesClicked"/>
 
-            <Button Text="Thống kê"
-                    BackgroundColor="Transparent"
-                    TextColor="White"
-                    HorizontalOptions="Fill"
-                    CornerRadius="8"/>
+<Button x:Name="StatisticsButton"
+        Text="Th?ng k�"
+        BackgroundColor="Transparent"
+        TextColor="White"
+        HorizontalOptions="Fill"
+        CornerRadius="8"
+        Clicked="OnStatisticsClicked"/>
 
         </VerticalStackLayout>
 
-        <!-- KHU VỰC NỘI DUNG BÊN PHẢI -->
+        <!-- KHU V?C N?I DUNG B�N PH?I -->
         <Grid Grid.Column="1"
               RowDefinitions="70,*"
               Padding="25">
 
-            <!-- Thanh tiêu đề -->
-            <Label Grid.Row="0"
-                   Text="Tổng quan"
+            <!-- Thanh ti�u d? -->
+          <Label   x:Name="PageTitle"git diff --check
+                   Grid.Row="0"
+                   Text="T?ng quan"
                    FontSize="26"
                    FontAttributes="Bold"
                    TextColor="#172554"
                    VerticalOptions="Center"/>
-
-            <!-- Nội dung trang chủ -->
-            
-<!-- Nội dung trang chủ -->
-<ScrollView Grid.Row="1">
+            <!-- N?i dung trang ch? -->
+<!-- N?i dung trang ch? -->
+<ScrollView x:Name="PageContent" Grid.Row="1">
     <VerticalStackLayout Spacing="20">
 
-        <Label Text="Chào mừng đến với hệ thống quản lý cửa hàng vật liệu xây dựng!"
+        <Label Text="Ch�o m?ng d?n v?i h? th?ng qu?n l� c?a h�ng v?t li?u x�y d?ng!"
                FontSize="18"
                FontAttributes="Bold"
                TextColor="#374151"/>
 
-        <Label Text="Tổng quan hoạt động kinh doanh"
+        <Label Text="T?ng quan ho?t d?ng kinh doanh"
                FontSize="15"
                TextColor="#6B7280"/>
 
-        <!-- KHU VỰC THỐNG KÊ -->
+        <!-- KHU V?C TH?NG K� -->
         <Grid ColumnDefinitions="*,*,*"
               ColumnSpacing="15">
 
-            <!-- Thẻ tổng sản phẩm -->
+            <!-- Th? t?ng s?n ph?m -->
             <Border Grid.Column="0"
                     BackgroundColor="White"
                     Stroke="#E5E7EB"
@@ -108,7 +120,7 @@
                     StrokeShape="RoundRectangle 12">
 
                 <VerticalStackLayout Spacing="10">
-                    <Label Text="Tổng sản phẩm"
+                    <Label Text="T?ng s?n ph?m"
                            FontSize="14"
                            TextColor="#6B7280"/>
 
@@ -117,13 +129,13 @@
                            FontAttributes="Bold"
                            TextColor="#2563EB"/>
 
-                    <Label Text="Sản phẩm trong kho"
+                    <Label Text="S?n ph?m trong kho"
                            FontSize="12"
                            TextColor="#9CA3AF"/>
                 </VerticalStackLayout>
             </Border>
 
-            <!-- Thẻ hóa đơn -->
+            <!-- Th? h�a don -->
             <Border Grid.Column="1"
                     BackgroundColor="White"
                     Stroke="#E5E7EB"
@@ -132,7 +144,7 @@
                     StrokeShape="RoundRectangle 12">
 
                 <VerticalStackLayout Spacing="10">
-                    <Label Text="Hóa đơn hôm nay"
+                    <Label Text="H�a don h�m nay"
                            FontSize="14"
                            TextColor="#6B7280"/>
 
@@ -141,13 +153,13 @@
                            FontAttributes="Bold"
                            TextColor="#059669"/>
 
-                    <Label Text="Hóa đơn đã tạo"
+                    <Label Text="H�a don d� t?o"
                            FontSize="12"
                            TextColor="#9CA3AF"/>
                 </VerticalStackLayout>
             </Border>
 
-            <!-- Thẻ doanh thu -->
+            <!-- Th? doanh thu -->
             <Border Grid.Column="2"
                     BackgroundColor="White"
                     Stroke="#E5E7EB"
@@ -156,16 +168,16 @@
                     StrokeShape="RoundRectangle 12">
 
                 <VerticalStackLayout Spacing="10">
-                    <Label Text="Doanh thu hôm nay"
+                    <Label Text="Doanh thu h�m nay"
                            FontSize="14"
                            TextColor="#6B7280"/>
 
-                    <Label Text="25.000.000 đ"
+                    <Label Text="25.000.000 d"
                            FontSize="26"
                            FontAttributes="Bold"
                            TextColor="#EA580C"/>
 
-                    <Label Text="Doanh thu minh họa"
+                    <Label Text="Doanh thu minh h?a"
                            FontSize="12"
                            TextColor="#9CA3AF"/>
                 </VerticalStackLayout>

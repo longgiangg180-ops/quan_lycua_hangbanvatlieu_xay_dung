@@ -1,23 +1,22 @@
-
-namespace QuanLyVatLieuXayDung;
+﻿namespace QuanLyVatLieuXayDung;
 
 public partial class MainPage : ContentPage
 {
-    // Luu l?i n?i dung trang ch? ban d?u
+    // Lưu lại nội dung trang chủ ban đầu
     private View _homeContent;
 
     public MainPage()
     {
         InitializeComponent();
 
-        // Luu n?i dung trang ch? d? c� th? quay l?i
+        // Lưu nội dung trang chủ để có thể quay lại
         _homeContent = PageContent.Content;
     }
 
-    // Thay d?i m�u n?n c?a c�c n�t menu
+    // Thay đổi màu nền của các nút menu
     private void SetActiveButton(Button selectedButton)
     {
-        // �ua t?t c? c�c n�t v? tr?ng th�i chua du?c ch?n
+        // Đưa tất cả các nút về trạng thái chưa được chọn
         HomeButton.BackgroundColor = Colors.Transparent;
         ProductsButton.BackgroundColor = Colors.Transparent;
         CustomersButton.BackgroundColor = Colors.Transparent;
@@ -25,11 +24,11 @@ public partial class MainPage : ContentPage
         InvoicesButton.BackgroundColor = Colors.Transparent;
         StatisticsButton.BackgroundColor = Colors.Transparent;
 
-        // �?i m�u n�t dang du?c ch?n
+        // Đổi màu nút đang được chọn
         selectedButton.BackgroundColor = Color.FromArgb("#2563EB");
     }
 
-    // H�m hi?n th? m?t trang
+    // Hàm hiển thị một trang tạm
     private void ShowPage(string title, string description)
     {
         PageTitle.Text = title;
@@ -59,67 +58,61 @@ public partial class MainPage : ContentPage
         };
     }
 
-    // N�t Trang ch?
+    // Nút Trang chủ
     private void OnHomeClicked(object sender, EventArgs e)
     {
         SetActiveButton(HomeButton);
 
-        PageTitle.Text = "T?ng quan";
+        PageTitle.Text = "Tổng quan";
         PageContent.Content = _homeContent;
     }
 
-    // N�t S?n ph?m
+    // Nút Sản phẩm
     private void OnProductsClicked(object sender, EventArgs e)
     {
         SetActiveButton(ProductsButton);
 
         ShowPage(
-            "Qu?n l� s?n ph?m",
-            "��y l� khu v?c qu?n l� danh s�ch s?n ph?m v?t li?u x�y d?ng."
+            "Quản lý sản phẩm",
+            "Đây là khu vực quản lý danh sách sản phẩm vật liệu xây dựng."
         );
     }
 
-    // N�t Kh�ch h�ng
+    // Nút Khách hàng (Thành viên 4)
     private void OnCustomersClicked(object sender, EventArgs e)
     {
         SetActiveButton(CustomersButton);
-
-        ShowPage(
-            "Qu?n l� kh�ch h�ng",
-            "��y l� khu v?c qu?n l� th�ng tin kh�ch h�ng."
-        );
+        PageTitle.Text = "Quản lý khách hàng";
+        PageContent.Content = new Views.CustomersView();
     }
 
-    // N�t Nh� cung c?p
+    // Nút Nhà cung cấp
     private void OnSuppliersClicked(object sender, EventArgs e)
     {
         SetActiveButton(SuppliersButton);
 
         ShowPage(
-            "Qu?n l� nh� cung c?p",
-            "��y l� khu v?c qu?n l� th�ng tin nh� cung c?p."
+            "Quản lý nhà cung cấp",
+            "Đây là khu vực quản lý thông tin nhà cung cấp."
         );
     }
 
-    // N�t H�a don
+    // Nút Hóa đơn (Thành viên 4)
     private void OnInvoicesClicked(object sender, EventArgs e)
     {
         SetActiveButton(InvoicesButton);
-
-        ShowPage(
-            "Qu?n l� h�a don",
-            "��y l� khu v?c qu?n l� h�a don b�n h�ng."
-        );
+        PageTitle.Text = "Quản lý bán hàng & Hóa đơn";
+        PageContent.Content = new Views.InvoicesView();
     }
 
-    // N�t Th?ng k�
+    // Nút Thống kê
     private void OnStatisticsClicked(object sender, EventArgs e)
     {
         SetActiveButton(StatisticsButton);
 
         ShowPage(
-            "Th?ng k�",
-            "��y l� khu v?c th?ng k� ho?t d?ng kinh doanh c?a c?a h�ng."
+            "Thống kê",
+            "Đây là khu vực thống kê hoạt động kinh doanh của cửa hàng."
         );
     }
 }

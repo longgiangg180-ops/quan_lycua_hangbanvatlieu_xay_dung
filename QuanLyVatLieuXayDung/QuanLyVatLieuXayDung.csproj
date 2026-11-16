@@ -71,4 +71,9 @@
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<Compile Include="..\models\**\*.cs" Link="models\%(RecursiveDir)%(Filename)%(Extension)" />
+		<Compile Include="..\services\**\*.cs" Link="services\%(RecursiveDir)%(Filename)%(Extension)" />
+	</ItemGroup>
+
 </Project>

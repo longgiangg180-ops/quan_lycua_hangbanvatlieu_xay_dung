@@ -20,5 +20,8 @@ namespace QuanLyCuaHang.Models
         public decimal GiaBan { get; set; }
 
         public string MoTa { get; set; } = "";
+
+        [Range(0, 999999, ErrorMessage = "Số lượng tồn không hợp lệ")]
+        public int SoLuongTon { get; set; } = 50; // Quản lý số lượng tồn kho
     }
 }

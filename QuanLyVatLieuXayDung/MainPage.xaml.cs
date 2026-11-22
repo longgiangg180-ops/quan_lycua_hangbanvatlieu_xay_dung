@@ -7,11 +7,36 @@ public partial class MainPage : ContentPage
 
     public MainPage()
     {
-        InitializeComponent();
+    InitializeComponent();
 
-        // Lưu nội dung trang chủ để có thể quay lại
-        _homeContent = PageContent.Content;
+    // Lưu nội dung trang chủ để có thể quay lại
+    _homeContent = PageContent.Content;
+
+    // Kiểm tra kết nối database
     }
+
+private async Task CheckDatabaseConnection()
+{
+    bool isConnected =
+        await QuanLyVatLieuXayDung.Data.DatabaseConnection.TestConnection();
+
+    if (isConnected)
+    {
+        await DisplayAlert(
+            "Kết nối thành công",
+            "Ứng dụng đã kết nối được với database Vat_lieu_xay_dung!",
+            "OK"
+        );
+    }
+    else
+    {
+        await DisplayAlert(
+            "Kết nối thất bại",
+            "Không thể kết nối database. Hãy kiểm tra lại cấu hình SQL Server.",
+            "OK"
+        );
+    }
+}
 
     // Thay đổi màu nền của các nút menu
     private void SetActiveButton(Button selectedButton)

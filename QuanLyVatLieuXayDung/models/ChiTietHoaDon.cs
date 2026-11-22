@@ -1,3 +1,4 @@
+
 using System.ComponentModel.DataAnnotations;
 
 namespace QuanLyCuaHang.Models
@@ -17,10 +18,12 @@ namespace QuanLyCuaHang.Models
         [Range(0, double.MaxValue, ErrorMessage = "Đơn giá phải lớn hơn hoặc bằng 0")]
         public decimal DonGiaBan { get; set; }
 
+        // Tự động tính thành tiền = Số lượng x Đơn giá bán
         public decimal ThanhTien => SoLuong * DonGiaBan;
 
         // Các thuộc tính tiện ích phục vụ hiển thị lên giao diện
         public string? TenSanPham { get; set; }
+
         public string? DonViTinh { get; set; }
     }
 }

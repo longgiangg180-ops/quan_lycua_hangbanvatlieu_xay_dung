@@ -6,7 +6,7 @@ namespace QuanLyVatLieuXayDung.Data
     {
         private static readonly string connectionString =
             "Server=.;" +
-            "Database=QuanLyCuaHang;" +
+            "Database=Vat_lieu_xay_dung;" +
             "Integrated Security=True;" +
             "TrustServerCertificate=True;";
 
@@ -31,7 +31,6 @@ namespace QuanLyVatLieuXayDung.Data
             {
                 System.Diagnostics.Debug.WriteLine(
                     "Lỗi kết nối database: " + ex.Message);
-
                 return false;
             }
         }

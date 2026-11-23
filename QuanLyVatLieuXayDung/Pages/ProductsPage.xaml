@@ -6,47 +6,203 @@
     Title="Sản phẩm"
     BackgroundColor="#F3F4F6">
 
-    <ScrollView>
-        <VerticalStackLayout Padding="25" Spacing="20">
-            <VerticalStackLayout Spacing="5">
-                <Label Text="Quản lý sản phẩm"
-                       FontSize="26"
-                       FontAttributes="Bold"
-                       TextColor="#172554" />
-                <Label Text="Danh sách vật liệu xây dựng trong cửa hàng"
-                       FontSize="14"
-                       TextColor="#64748B" />
-            </VerticalStackLayout>
+    <Grid>
 
-            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
-                <Entry Placeholder="Tìm kiếm sản phẩm..."
-                       BackgroundColor="White"
-                       TextColor="#1E293B"
-                       PlaceholderColor="#94A3B8"
-                       HeightRequest="48" />
-                <Button Grid.Column="1"
-                        Text="+ Thêm sản phẩm"
-                        BackgroundColor="#2563EB"
-                        TextColor="White"
-                        CornerRadius="8" />
-            </Grid>
+        <!-- DANH SÁCH SẢN PHẨM -->
+        <ScrollView>
+            <VerticalStackLayout
+                x:Name="ProductsRoot"
+                Padding="25"
+                Spacing="20">
+
+                <VerticalStackLayout Spacing="5">
+                    <Label Text="Quản lý sản phẩm"
+                           FontSize="26"
+                           FontAttributes="Bold"
+                           TextColor="#172554" />
+
+                    <Label Text="Danh sách vật liệu xây dựng trong cửa hàng"
+                           FontSize="14"
+                           TextColor="#64748B" />
+                </VerticalStackLayout>
+
+                <Grid ColumnDefinitions="*,Auto,Auto"
+                      ColumnSpacing="10">
+
+                    <Entry x:Name="SearchEntry"
+                           Placeholder="Tìm kiếm sản phẩm..."
+                           BackgroundColor="White"
+                           TextColor="#1E293B"
+                           PlaceholderColor="#94A3B8"
+                           HeightRequest="48"
+                           TextChanged="OnSearchTextChanged" />
+
+                    <Button Grid.Column="1"
+                            Text="Nạp ảnh"
+                            Clicked="OnNapAnhClicked"
+                            BackgroundColor="#16A34A"
+                            TextColor="White"
+                            CornerRadius="8" />
+
+                    <Button Grid.Column="2"
+                            Text="+ Thêm sản phẩm"
+                            Clicked="OnAddProductClicked"
+                            BackgroundColor="#2563EB"
+                            TextColor="White"
+                            CornerRadius="8" />
+                </Grid>
+
+                <Border BackgroundColor="White"
+                        Stroke="#E2E8F0"
+                        StrokeShape="RoundRectangle 10"
+                        Padding="20">
+
+                    <VerticalStackLayout Spacing="15">
+
+                        <Label Text="Danh sách sản phẩm"
+                               FontSize="18"
+                               FontAttributes="Bold"
+                               TextColor="#172554" />
+
+                        <Label x:Name="StatusLabel"
+                               Text="Đang tải dữ liệu..."
+                               FontSize="14"
+                               TextColor="#64748B"
+                               HorizontalOptions="Center" />
+
+                        <VerticalStackLayout x:Name="ProductsContainer"
+                                             Spacing="12" />
+
+                    </VerticalStackLayout>
+                </Border>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- CỬA SỔ THÊM / SỬA SẢN PHẨM -->
+        <Grid x:Name="AddProductOverlay"
+              IsVisible="False"
+              BackgroundColor="#80000000"
+              Padding="10"
+              ZIndex="10">
 
             <Border BackgroundColor="White"
                     Stroke="#E2E8F0"
-                    StrokeShape="RoundRectangle 10"
-                    Padding="20">
-                <VerticalStackLayout Spacing="15">
-                    <Label Text="Danh sách sản phẩm"
-                           FontSize="18"
+                    StrokeShape="RoundRectangle 12"
+                    Padding="18"
+                    WidthRequest="550"
+                    HeightRequest="600"
+                    HorizontalOptions="Center"
+                    VerticalOptions="Center">
+
+                <Grid RowDefinitions="Auto,*,Auto"
+                      RowSpacing="10">
+
+                    <!-- TIÊU ĐỀ BIỂU MẪU -->
+                    <Label x:Name="FormTitleLabel"
+                           Grid.Row="0"
+                           Text="Thêm sản phẩm mới"
+                           FontSize="24"
                            FontAttributes="Bold"
-                           TextColor="#172554" />
-                    <Label Text="Chưa có dữ liệu sản phẩm."
-                           FontSize="14"
-                           TextColor="#64748B"
+                           TextColor="#172554"
                            HorizontalOptions="Center"
-                           Margin="0,20" />
-                </VerticalStackLayout>
+                           Margin="0,0,0,5" />
+
+                    <!-- VÙNG NHẬP LIỆU -->
+                    <ScrollView Grid.Row="1"
+                                VerticalOptions="Fill"
+                                VerticalScrollBarVisibility="Always">
+
+                        <VerticalStackLayout Spacing="8">
+
+                            <Label Text="Tên sản phẩm"
+                                   FontAttributes="Bold"
+                                   TextColor="#334155" />
+
+                            <Entry x:Name="NewTenSanPham"
+                                   Placeholder="Nhập tên sản phẩm..."
+                                   BackgroundColor="#F8FAFC"
+                                   TextColor="#1E293B" />
+
+                            <Label Text="Danh mục"
+                                   FontAttributes="Bold"
+                                   TextColor="#334155" />
+
+                            <Entry x:Name="NewDanhMuc"
+                                   Placeholder="Ví dụ: Gạch, Xi măng, Thép..."
+                                   BackgroundColor="#F8FAFC"
+                                   TextColor="#1E293B" />
+
+                            <Label Text="Đơn vị tính"
+                                   FontAttributes="Bold"
+                                   TextColor="#334155" />
+
+                            <Entry x:Name="NewDonViTinh"
+                                   Placeholder="Ví dụ: Viên, Bao, Cái, m2..."
+                                   BackgroundColor="#F8FAFC"
+                                   TextColor="#1E293B" />
+
+                            <Label Text="Giá bán (VNĐ)"
+                                   FontAttributes="Bold"
+                                   TextColor="#334155" />
+
+                            <Entry x:Name="NewGiaBan"
+                                   Placeholder="Nhập giá bán..."
+                                   Keyboard="Numeric"
+                                   BackgroundColor="#F8FAFC"
+                                   TextColor="#1E293B" />
+
+                            <Label Text="Số lượng tồn"
+                                   FontAttributes="Bold"
+                                   TextColor="#334155" />
+
+                            <Entry x:Name="NewSoLuongTon"
+                                   Placeholder="Nhập số lượng tồn..."
+                                   Keyboard="Numeric"
+                                   Text="0"
+                                   BackgroundColor="#F8FAFC"
+                                   TextColor="#1E293B" />
+
+                            <Label Text="Mô tả sản phẩm"
+                                   FontAttributes="Bold"
+                                   TextColor="#334155" />
+
+                            <Editor x:Name="NewMoTa"
+                                    Placeholder="Nhập mô tả sản phẩm..."
+                                    HeightRequest="90"
+                                    BackgroundColor="#F8FAFC"
+                                    TextColor="#1E293B" />
+
+                        </VerticalStackLayout>
+                    </ScrollView>
+
+                    <!-- CÁC NÚT CỐ ĐỊNH -->
+                    <Grid Grid.Row="2"
+                          ColumnDefinitions="*,*"
+                          ColumnSpacing="12"
+                          HeightRequest="45">
+
+                        <Button Text="Hủy"
+                                Clicked="OnCancelAddProductClicked"
+                                BackgroundColor="#64748B"
+                                TextColor="White"
+                                CornerRadius="8"
+                                HeightRequest="45" />
+
+                        <Button x:Name="SaveProductButton"
+                                Grid.Column="1"
+                                Text="Lưu sản phẩm"
+                                Clicked="OnSaveProductClicked"
+                                BackgroundColor="#2563EB"
+                                TextColor="White"
+                                CornerRadius="8"
+                                HeightRequest="45" />
+
+                    </Grid>
+
+                </Grid>
             </Border>
-        </VerticalStackLayout>
-    </ScrollView>
+        </Grid>
+
+    </Grid>
 </ContentPage>

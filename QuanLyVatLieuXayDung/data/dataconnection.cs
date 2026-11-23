@@ -5,7 +5,7 @@ namespace QuanLyVatLieuXayDung.Data
     public static class DatabaseConnection
     {
         private static readonly string connectionString =
-            "Server=.;" +
+            "Server=.\\SQLEXPRESS;" +
             "Database=Vat_lieu_xay_dung;" +
             "Integrated Security=True;" +
             "TrustServerCertificate=True;";

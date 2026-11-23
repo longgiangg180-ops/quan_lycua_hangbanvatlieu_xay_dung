@@ -66,22 +66,41 @@ namespace QuanLyVatLieuXayDung.Views
                     "Xóa",
                     "Hủy");
 
-                if (confirm)
+                if (!confirm)
+                    return;
+
+                try
                 {
                     bool result = await _khachHangService.Delete(kh.MaKhachHang);
+
                     if (result)
                     {
-                        await Application.Current!.Windows[0].Page!.DisplayAlert("Thành công", "Đã xóa khách hàng!", "OK");
+                        await Application.Current!.Windows[0].Page!.DisplayAlert(
+                            "Thành công",
+                            "Đã xóa khách hàng!",
+                            "OK");
+
                         if (_selectedCustomer?.MaKhachHang == kh.MaKhachHang)
                         {
                             ClearForm();
                         }
+
                         LoadCustomers();
                     }
                     else
                     {
-                        await Application.Current!.Windows[0].Page!.DisplayAlert("Lỗi", "Không thể xóa khách hàng!", "OK");
+                        await Application.Current!.Windows[0].Page!.DisplayAlert(
+                            "Thông báo",
+                            "Không tìm thấy khách hàng cần xóa!",
+                            "OK");
                     }
+                }
+                catch (Exception ex)
+                {
+                    await Application.Current!.Windows[0].Page!.DisplayAlert(
+                        "Lỗi xóa khách hàng",
+                        ex.Message,
+                        "OK");
                 }
             }
         }

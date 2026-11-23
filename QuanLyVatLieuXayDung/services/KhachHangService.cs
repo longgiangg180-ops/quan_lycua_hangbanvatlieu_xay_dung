@@ -199,12 +199,22 @@ namespace QuanLyCuaHang.Services
 
                 return rows > 0;
             }
+            catch (SqlException ex) when (ex.Number == 547)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    "Không thể xóa khách hàng do vi phạm khóa ngoại: "
+                    + ex.Message);
+
+                throw new InvalidOperationException(
+                    "Khách hàng này đã phát sinh hóa đơn hoặc đang được dữ liệu khác tham chiếu. Không thể xóa!",
+                    ex);
+            }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine(
-                    "Lỗi xóa khách hàng: " + ex.Message);
+                    "Lỗi xóa khách hàng: " + ex.ToString());
 
-                return false;
+                throw;
             }
         }
 
@@ -236,7 +246,8 @@ namespace QuanLyCuaHang.Services
                     new SqlCommand(query, connection);
 
                 command.Parameters.Add("@Keyword",
-                    SqlDbType.NVarChar, 400).Value = "%" + keyword.Trim() + "%";
+                    SqlDbType.NVarChar, 400).Value =
+                    "%" + keyword.Trim() + "%";
 
                 using SqlDataReader reader =
                     await command.ExecuteReaderAsync();

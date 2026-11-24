@@ -1,22 +1,29 @@
-﻿namespace QuanLyVatLieuXayDung;
+﻿using Microsoft.Maui.Controls;
+using QuanLyCuaHang.Services;
+using System.Globalization;
+
+namespace QuanLyVatLieuXayDung;
 
 public partial class MainPage : ContentPage
 {
-    // Lưu lại nội dung trang chủ ban đầu
-    private View _homeContent;
+    private View? _homeContent;
+
+    private readonly ThongKeService _thongKeService = new();
 
     public MainPage()
     {
         InitializeComponent();
 
-        // Lưu nội dung trang chủ để có thể quay lại
+        // Lưu nội dung trang chủ ban đầu
         _homeContent = PageContent.Content;
+
+        // Tải dữ liệu thống kê khi mở ứng dụng
+        _ = LoadHomeStatisticsAsync();
     }
 
     // Thay đổi màu nền của các nút menu
     private void SetActiveButton(Button selectedButton)
     {
-        // Đưa tất cả các nút về trạng thái chưa được chọn
         HomeButton.BackgroundColor = Colors.Transparent;
         ProductsButton.BackgroundColor = Colors.Transparent;
         CustomersButton.BackgroundColor = Colors.Transparent;
@@ -24,11 +31,48 @@ public partial class MainPage : ContentPage
         InvoicesButton.BackgroundColor = Colors.Transparent;
         StatisticsButton.BackgroundColor = Colors.Transparent;
 
-        // Đổi màu nút đang được chọn
         selectedButton.BackgroundColor = Color.FromArgb("#2563EB");
     }
 
-    // Hàm hiển thị một trang tạm
+    // Tải dữ liệu thống kê từ SQL Server
+    private async Task LoadHomeStatisticsAsync()
+    {
+        try
+        {
+            TotalProductsLabel.Text = "...";
+            TodayInvoicesLabel.Text = "...";
+            TodayRevenueLabel.Text = "...";
+
+            var thongKe =
+                await _thongKeService.GetThongKeTrangChuAsync();
+
+            TotalProductsLabel.Text =
+                thongKe.TongSanPham.ToString(
+                    "N0",
+                    CultureInfo.GetCultureInfo("vi-VN"));
+
+            TodayInvoicesLabel.Text =
+                thongKe.HoaDonHomNay.ToString(
+                    "N0",
+                    CultureInfo.GetCultureInfo("vi-VN"));
+
+            TodayRevenueLabel.Text =
+                thongKe.DoanhThuHomNay.ToString(
+                    "N0",
+                    CultureInfo.GetCultureInfo("vi-VN")) + " đ";
+        }
+        catch (Exception ex)
+        {
+            TotalProductsLabel.Text = "--";
+            TodayInvoicesLabel.Text = "--";
+            TodayRevenueLabel.Text = "--";
+
+            System.Diagnostics.Debug.WriteLine(
+                "Lỗi tải thống kê trang chủ: " + ex.Message);
+        }
+    }
+
+    // Hiển thị trang tạm cho các chức năng chưa hoàn thiện
     private void ShowPage(string title, string description)
     {
         PageTitle.Text = title;
@@ -59,60 +103,63 @@ public partial class MainPage : ContentPage
     }
 
     // Nút Trang chủ
-    private void OnHomeClicked(object sender, EventArgs e)
+    private async void OnHomeClicked(object? sender, EventArgs e)
     {
         SetActiveButton(HomeButton);
 
         PageTitle.Text = "Tổng quan";
         PageContent.Content = _homeContent;
+
+        await LoadHomeStatisticsAsync();
     }
 
     // Nút Sản phẩm
-    private void OnProductsClicked(object sender, EventArgs e)
+    private void OnProductsClicked(object? sender, EventArgs e)
     {
         SetActiveButton(ProductsButton);
 
-        ShowPage(
-            "Quản lý sản phẩm",
-            "Đây là khu vực quản lý danh sách sản phẩm vật liệu xây dựng."
-        );
+        PageTitle.Text = "Quản lý sản phẩm";
+
+        var productsPage = new Pages.ProductsPage();
+
+        PageContent.Content = productsPage.Content;
     }
 
-    // Nút Khách hàng (Thành viên 4)
-    private void OnCustomersClicked(object sender, EventArgs e)
+    // Nút Khách hàng
+    private void OnCustomersClicked(object? sender, EventArgs e)
     {
         SetActiveButton(CustomersButton);
+
         PageTitle.Text = "Quản lý khách hàng";
         PageContent.Content = new Views.CustomersView();
     }
 
     // Nút Nhà cung cấp
-    private void OnSuppliersClicked(object sender, EventArgs e)
+    private void OnSuppliersClicked(object? sender, EventArgs e)
     {
         SetActiveButton(SuppliersButton);
 
-        ShowPage(
-            "Quản lý nhà cung cấp",
-            "Đây là khu vực quản lý thông tin nhà cung cấp."
-        );
+        PageTitle.Text = "Quản lý nhà cung cấp";
+        PageContent.Content = new Views.SuppliersView();
     }
 
-    // Nút Hóa đơn (Thành viên 4)
-    private void OnInvoicesClicked(object sender, EventArgs e)
+    // Nút Hóa đơn
+    private void OnInvoicesClicked(object? sender, EventArgs e)
     {
         SetActiveButton(InvoicesButton);
+
         PageTitle.Text = "Quản lý bán hàng & Hóa đơn";
         PageContent.Content = new Views.InvoicesView();
     }
 
     // Nút Thống kê
-    private void OnStatisticsClicked(object sender, EventArgs e)
+    private void OnStatisticsClicked(object? sender, EventArgs e)
     {
         SetActiveButton(StatisticsButton);
 
-        ShowPage(
-            "Thống kê",
-            "Đây là khu vực thống kê hoạt động kinh doanh của cửa hàng."
-        );
+        PageTitle.Text = "Thống kê";
+
+        // Mở giao diện thống kê thực tế
+        PageContent.Content = new Views.StatisticsView();
     }
 }

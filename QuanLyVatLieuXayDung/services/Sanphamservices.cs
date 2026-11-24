@@ -1,148 +1,371 @@
-using System.Net.Http.Json;
+
+using Microsoft.Data.SqlClient;
+using Microsoft.Maui.Storage;
+using System.Data;
 using QuanLyCuaHang.Models;
+using QuanLyVatLieuXayDung.Data;
 
 namespace QuanLyCuaHang.Services
 {
     public class SanPhamService
     {
-        private readonly HttpClient? _http;
-
-        // Dữ liệu mẫu sản phẩm đồng bộ từ file SQL của nhóm
-        private static readonly List<SanPham> _mockSanPham = new()
-        {
-            new SanPham { MaSanPham = 1, TenSanPham = "Kính cường lực 10mm", DanhMuc = "Thuỷ tinh", DonViTinh = "m2", GiaBan = 650000, SoLuongTon = 35, MoTa = "Kính cường lực xây dựng" },
-            new SanPham { MaSanPham = 2, TenSanPham = "Bồn nước Inox 1000L Ngang", DanhMuc = "Bồn nước", DonViTinh = "Cái", GiaBan = 3200000, SoLuongTon = 12, MoTa = "Bồn chứa nước thiết bị" },
-            new SanPham { MaSanPham = 3, TenSanPham = "Gạch ống 4 lỗ 8x8x18", DanhMuc = "Gạch", DonViTinh = "Viên", GiaBan = 1200, SoLuongTon = 5000, MoTa = "Gạch đất sét nung tuynel" },
-            new SanPham { MaSanPham = 4, TenSanPham = "Xi măng Portland hỗn hợp PCB40", DanhMuc = "Xi măng", DonViTinh = "Bao", GiaBan = 88000, SoLuongTon = 250, MoTa = "Xi măng bao 50kg" },
-            new SanPham { MaSanPham = 5, TenSanPham = "Thép thanh vằn D12 CB300-V", DanhMuc = "Sắt thép", DonViTinh = "Cây", GiaBan = 165000, SoLuongTon = 180, MoTa = "Thép cốt bê tông chịu lực" },
-            new SanPham { MaSanPham = 6, TenSanPham = "Cát xây dựng vàng", DanhMuc = "Cát xây dựng", DonViTinh = "m3", GiaBan = 350000, SoLuongTon = 60, MoTa = "Cát vàng trộn bê tông" },
-            new SanPham { MaSanPham = 7, TenSanPham = "Đá xây dựng 1x2", DanhMuc = "Đá xây dựng", DonViTinh = "m3", GiaBan = 420000, SoLuongTon = 80, MoTa = "Đá xây dựng 1x2" },
-            new SanPham { MaSanPham = 8, TenSanPham = "Đá mi sàng", DanhMuc = "Đá xây dựng", DonViTinh = "m3", GiaBan = 280000, SoLuongTon = 90, MoTa = "Đá mi sàng" },
-            new SanPham { MaSanPham = 9, TenSanPham = "Gạch thẻ đặc", DanhMuc = "Gạch", DonViTinh = "Viên", GiaBan = 1500, SoLuongTon = 3000, MoTa = "Gạch thẻ đặc" },
-            new SanPham { MaSanPham = 10, TenSanPham = "Gạch block bê tông", DanhMuc = "Gạch", DonViTinh = "Viên", GiaBan = 8500, SoLuongTon = 1500, MoTa = "Gạch không nung" },
-            new SanPham { MaSanPham = 11, TenSanPham = "Thép thanh vằn D16 CB300-V", DanhMuc = "Sắt thép", DonViTinh = "Cây", GiaBan = 245000, SoLuongTon = 110, MoTa = "Thép xây dựng chịu lực" },
-            new SanPham { MaSanPham = 12, TenSanPham = "Thép cuộn phi 6", DanhMuc = "Sắt thép", DonViTinh = "Kg", GiaBan = 18000, SoLuongTon = 800, MoTa = "Thép cuộn" },
-            new SanPham { MaSanPham = 13, TenSanPham = "Xi măng Portland PCB30", DanhMuc = "Xi măng", DonViTinh = "Bao", GiaBan = 75000, SoLuongTon = 200, MoTa = "Xi măng xây tô" },
-            new SanPham { MaSanPham = 14, TenSanPham = "Sơn nội thất Dulux 5L", DanhMuc = "Sơn", DonViTinh = "Thùng", GiaBan = 650000, SoLuongTon = 45, MoTa = "Sơn nội thất" },
-            new SanPham { MaSanPham = 15, TenSanPham = "Ống nhựa PVC phi 90", DanhMuc = "Thiết bị nước", DonViTinh = "Cây", GiaBan = 125000, SoLuongTon = 75, MoTa = "Ống nhựa PVC" }
-        };
-
-        public SanPhamService(HttpClient? http = null)
-        {
-            _http = http;
-        }
-
         // Lấy danh sách sản phẩm
         public async Task<List<SanPham>> GetAll()
         {
-            if (_http != null)
+            var danhSach = new List<SanPham>();
+
+            using var connection = DatabaseConnection.GetConnection();
+            await connection.OpenAsync();
+
+            string query = @"
+                SELECT MaSanPham, TenSanPham, DanhMuc,
+                       DonViTinh, GiaBan, MoTa, SoLuongTon, AnhSanPham
+                FROM dbo.SanPham
+                ORDER BY MaSanPham";
+
+            using var command = new SqlCommand(query, connection);
+            using var reader = await command.ExecuteReaderAsync();
+
+            while (await reader.ReadAsync())
             {
-                try
-                {
-                    var data = await _http.GetFromJsonAsync<List<SanPham>>("api/sanpham");
-                    if (data != null && data.Count > 0) return data;
-                }
-                catch { }
+                danhSach.Add(MapSanPham(reader));
             }
 
-            return await Task.FromResult(_mockSanPham.ToList());
+            return danhSach;
         }
 
         // Lấy sản phẩm theo mã
         public async Task<SanPham?> GetById(int id)
         {
-            var list = await GetAll();
-            return list.FirstOrDefault(s => s.MaSanPham == id);
+            using var connection = DatabaseConnection.GetConnection();
+            await connection.OpenAsync();
+
+            string query = @"
+                SELECT MaSanPham, TenSanPham, DanhMuc,
+                       DonViTinh, GiaBan, MoTa, SoLuongTon, AnhSanPham
+                FROM dbo.SanPham
+                WHERE MaSanPham = @MaSanPham";
+
+            using var command = new SqlCommand(query, connection);
+
+            command.Parameters.Add("@MaSanPham", SqlDbType.Int).Value = id;
+
+            using var reader = await command.ExecuteReaderAsync();
+
+            if (await reader.ReadAsync())
+            {
+                return MapSanPham(reader);
+            }
+
+            return null;
         }
 
         // Thêm sản phẩm
         public async Task<bool> Add(SanPham sp)
         {
-            if (_http != null)
-            {
-                try
-                {
-                    var response = await _http.PostAsJsonAsync("api/sanpham", sp);
-                    if (response.IsSuccessStatusCode) return true;
-                }
-                catch { }
-            }
+            using var connection = DatabaseConnection.GetConnection();
+            await connection.OpenAsync();
 
-            if (sp.MaSanPham <= 0)
+            // Dùng Serializable để hạn chế trùng mã khi có
+            // nhiều thao tác thêm sản phẩm đồng thời.
+            using var transaction =
+                connection.BeginTransaction(IsolationLevel.Serializable);
+
+            try
             {
-                sp.MaSanPham = _mockSanPham.Count > 0 ? _mockSanPham.Max(s => s.MaSanPham) + 1 : 1;
+                string query = @"
+                    DECLARE @MaMoi INT;
+
+                    SELECT @MaMoi = ISNULL(MAX(MaSanPham), 0) + 1
+                    FROM dbo.SanPham WITH (UPDLOCK, HOLDLOCK);
+
+                    INSERT INTO dbo.SanPham
+                    (
+                        MaSanPham, TenSanPham, DanhMuc,
+                        DonViTinh, GiaBan, MoTa, SoLuongTon, AnhSanPham
+                    )
+                    VALUES
+                    (
+                        @MaMoi, @TenSanPham, @DanhMuc,
+                        @DonViTinh, @GiaBan, @MoTa, @SoLuongTon, @AnhSanPham
+                    );
+
+                    SELECT @MaMoi;";
+
+                using var command = new SqlCommand(query, connection, transaction);
+
+                AddProductParameters(command, sp);
+
+                object? result = await command.ExecuteScalarAsync();
+
+                sp.MaSanPham = Convert.ToInt32(result);
+
+                transaction.Commit();
+
+                return true;
             }
-            _mockSanPham.Add(sp);
-            return await Task.FromResult(true);
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
         }
 
         // Sửa sản phẩm
         public async Task<bool> Update(SanPham sp)
         {
-            if (_http != null)
-            {
-                try
-                {
-                    var response = await _http.PutAsJsonAsync($"api/sanpham/{sp.MaSanPham}", sp);
-                    if (response.IsSuccessStatusCode) return true;
-                }
-                catch { }
-            }
+            using var connection = DatabaseConnection.GetConnection();
+            await connection.OpenAsync();
 
-            var index = _mockSanPham.FindIndex(s => s.MaSanPham == sp.MaSanPham);
-            if (index >= 0)
-            {
-                _mockSanPham[index] = sp;
-                return await Task.FromResult(true);
-            }
-            return await Task.FromResult(false);
+            string query = @"
+                UPDATE dbo.SanPham
+                SET TenSanPham = @TenSanPham,
+                    DanhMuc = @DanhMuc,
+                    DonViTinh = @DonViTinh,
+                    GiaBan = @GiaBan,
+                    MoTa = @MoTa,
+                    SoLuongTon = @SoLuongTon,
+                    AnhSanPham = @AnhSanPham
+                WHERE MaSanPham = @MaSanPham";
+
+            using var command = new SqlCommand(query, connection);
+
+            AddProductParameters(command, sp);
+
+            command.Parameters.Add("@MaSanPham", SqlDbType.Int).Value =
+                sp.MaSanPham;
+
+            int rowsAffected = await command.ExecuteNonQueryAsync();
+
+            return rowsAffected > 0;
         }
 
         // Xóa sản phẩm
         public async Task<bool> Delete(int id)
         {
-            if (_http != null)
-            {
-                try
-                {
-                    var response = await _http.DeleteAsync($"api/sanpham/{id}");
-                    if (response.IsSuccessStatusCode) return true;
-                }
-                catch { }
-            }
+            using var connection = DatabaseConnection.GetConnection();
+            await connection.OpenAsync();
 
-            var item = _mockSanPham.FirstOrDefault(s => s.MaSanPham == id);
-            if (item != null)
+            string query = @"
+                DELETE FROM dbo.SanPham
+                WHERE MaSanPham = @MaSanPham";
+
+            using var command = new SqlCommand(query, connection);
+
+            command.Parameters.Add("@MaSanPham", SqlDbType.Int).Value = id;
+
+            try
             {
-                _mockSanPham.Remove(item);
-                return await Task.FromResult(true);
+                int rowsAffected = await command.ExecuteNonQueryAsync();
+
+                return rowsAffected > 0;
             }
-            return await Task.FromResult(false);
+            catch (SqlException ex) when (ex.Number == 547)
+            {
+                throw new InvalidOperationException(
+                    "Sản phẩm này đã phát sinh hóa đơn hoặc phiếu nhập. " +
+                    "Không thể xóa để đảm bảo dữ liệu lịch sử!", ex);
+            }
+        }
+
+        // Nhập 15 ảnh sản phẩm từ Resources/Raw/Products vào SQL Server
+        public async Task<int> NapAnhSanPhamAsync()
+        {
+            var danhSachAnh = new Dictionary<int, string>
+            {
+                { 1, "sp001_kinh_cuong_luc_10mm.png" },
+                { 2, "sp002_bon_nuoc_inox_1000l_ngang.png" },
+                { 3, "sp003_gach_ong_4_lo_8x8x18.png" },
+                { 4, "sp004_xi_mang_pcb40.png" },
+                { 5, "sp005_thep_thanh_van_d12.png" },
+                { 6, "sp006_cat_xay_dung_vang.png" },
+                { 7, "sp007_da_xay_dung_1x2.png" },
+                { 8, "sp008_da_mi_sang.png" },
+                { 9, "sp009_gach_the_dac.png" },
+                { 10, "sp010_gach_block_be_tong.png" },
+                { 11, "sp011_thep_thanh_van_d16.png" },
+                { 12, "sp012_thep_cuon_phi_6.png" },
+                { 13, "sp013_xi_mang_pcb30.png" },
+                { 14, "sp014_son_noi_that_dulux_5l.png" },
+                { 15, "sp015_ong_nhua_pvc_phi_90.png" }
+            };
+
+            int soAnhDaCapNhat = 0;
+
+            using var connection = DatabaseConnection.GetConnection();
+            await connection.OpenAsync();
+
+            using var transaction =
+                (SqlTransaction)await connection.BeginTransactionAsync();
+
+            try
+            {
+                foreach (var item in danhSachAnh)
+                {
+                    string tenFile = "Products/" + item.Value;
+
+                    using var stream =
+                        await FileSystem.OpenAppPackageFileAsync(tenFile);
+
+                    using var memoryStream = new MemoryStream();
+
+                    await stream.CopyToAsync(memoryStream);
+
+                    byte[] anh = memoryStream.ToArray();
+
+                    string query = @"
+                        UPDATE dbo.SanPham
+                        SET AnhSanPham = @AnhSanPham
+                        WHERE MaSanPham = @MaSanPham";
+
+                    using var command = new SqlCommand(
+                        query, connection, transaction);
+
+                    command.Parameters.Add("@MaSanPham", SqlDbType.Int)
+                        .Value = item.Key;
+
+                    command.Parameters.Add("@AnhSanPham", SqlDbType.VarBinary, -1)
+                        .Value = anh;
+
+                    int rowsAffected = await command.ExecuteNonQueryAsync();
+
+                    if (rowsAffected > 0)
+                    {
+                        soAnhDaCapNhat++;
+                    }
+                }
+
+                await transaction.CommitAsync();
+
+                return soAnhDaCapNhat;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         // Tìm kiếm sản phẩm
         public async Task<List<SanPham>> Search(string keyword)
         {
-            var danhSach = await GetAll();
-            if (string.IsNullOrWhiteSpace(keyword)) return danhSach;
+            if (string.IsNullOrWhiteSpace(keyword))
+            {
+                return await GetAll();
+            }
 
-            return danhSach.Where(sp =>
-                sp.TenSanPham.Contains(keyword, StringComparison.OrdinalIgnoreCase)
-                || sp.DanhMuc.Contains(keyword, StringComparison.OrdinalIgnoreCase)
-                || sp.MaSanPham.ToString().Contains(keyword)
-            ).ToList();
+            var danhSach = new List<SanPham>();
+
+            using var connection = DatabaseConnection.GetConnection();
+            await connection.OpenAsync();
+
+            string query = @"
+                SELECT MaSanPham, TenSanPham, DanhMuc,
+                       DonViTinh, GiaBan, MoTa, SoLuongTon, AnhSanPham
+                FROM dbo.SanPham
+                WHERE TenSanPham LIKE @Keyword
+                   OR DanhMuc LIKE @Keyword
+                   OR CONVERT(NVARCHAR(20), MaSanPham) LIKE @Keyword
+                ORDER BY MaSanPham";
+
+            using var command = new SqlCommand(query, connection);
+
+            command.Parameters.Add("@Keyword", SqlDbType.NVarChar, 200)
+                .Value = "%" + keyword.Trim() + "%";
+
+            using var reader = await command.ExecuteReaderAsync();
+
+            while (await reader.ReadAsync())
+            {
+                danhSach.Add(MapSanPham(reader));
+            }
+
+            return danhSach;
         }
 
-        // Trừ số lượng tồn kho (Chức năng 5)
+        // Trừ số lượng tồn kho
         public async Task<bool> GiamTonKho(int maSanPham, int soLuongGiam)
         {
-            var sp = _mockSanPham.FirstOrDefault(s => s.MaSanPham == maSanPham);
-            if (sp != null && sp.SoLuongTon >= soLuongGiam)
+            if (soLuongGiam <= 0)
             {
-                sp.SoLuongTon -= soLuongGiam;
-                return await Task.FromResult(true);
+                return false;
             }
-            return await Task.FromResult(false);
+
+            using var connection = DatabaseConnection.GetConnection();
+            await connection.OpenAsync();
+
+            string query = @"
+                UPDATE dbo.SanPham
+                SET SoLuongTon = SoLuongTon - @SoLuongGiam
+                WHERE MaSanPham = @MaSanPham
+                  AND SoLuongTon >= @SoLuongGiam";
+
+            using var command = new SqlCommand(query, connection);
+
+            command.Parameters.Add("@MaSanPham", SqlDbType.Int).Value =
+                maSanPham;
+
+            command.Parameters.Add("@SoLuongGiam", SqlDbType.Int).Value =
+                soLuongGiam;
+
+            int rowsAffected = await command.ExecuteNonQueryAsync();
+
+            return rowsAffected > 0;
+        }
+
+        // Ánh xạ dữ liệu SQL Server sang đối tượng SanPham
+        private static SanPham MapSanPham(SqlDataReader reader)
+        {
+            return new SanPham
+            {
+                MaSanPham = reader.GetInt32(reader.GetOrdinal("MaSanPham")),
+
+                TenSanPham = reader["TenSanPham"] as string ?? "",
+
+                DanhMuc = reader["DanhMuc"] as string ?? "",
+
+                DonViTinh = reader["DonViTinh"] as string ?? "",
+
+                GiaBan = reader.GetDecimal(reader.GetOrdinal("GiaBan")),
+
+                MoTa = reader["MoTa"] as string ?? "",
+
+                SoLuongTon = reader.GetInt32(reader.GetOrdinal("SoLuongTon")),
+
+                AnhSanPham = reader["AnhSanPham"] == DBNull.Value
+                    ? null
+                    : (byte[])reader["AnhSanPham"]
+            };
+        }
+
+        // Thêm các tham số dùng chung cho chức năng thêm và sửa
+        private static void AddProductParameters(
+            SqlCommand command, SanPham sp)
+        {
+            command.Parameters.Add("@TenSanPham", SqlDbType.NVarChar, 200)
+                .Value = sp.TenSanPham;
+
+            command.Parameters.Add("@DanhMuc", SqlDbType.NVarChar, 200)
+                .Value = sp.DanhMuc;
+
+            command.Parameters.Add("@DonViTinh", SqlDbType.NVarChar, 100)
+                .Value = sp.DonViTinh;
+
+            var giaBan = command.Parameters.Add("@GiaBan", SqlDbType.Decimal);
+            giaBan.Precision = 18;
+            giaBan.Scale = 2;
+            giaBan.Value = sp.GiaBan;
+
+            command.Parameters.Add("@MoTa", SqlDbType.NVarChar, 1000)
+                .Value = sp.MoTa ?? "";
+
+            command.Parameters.Add("@SoLuongTon", SqlDbType.Int)
+                .Value = sp.SoLuongTon;
+
+            command.Parameters.Add("@AnhSanPham", SqlDbType.VarBinary, -1)
+                .Value = sp.AnhSanPham == null
+                    ? DBNull.Value
+                    : sp.AnhSanPham;
         }
     }
 }

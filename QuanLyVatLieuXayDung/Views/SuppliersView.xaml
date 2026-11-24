@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="QuanLyVatLieuXayDung.Views.SuppliersView">
+
+    <Grid RowDefinitions="Auto,*"
+          ColumnDefinitions="2*,1*"
+          ColumnSpacing="20"
+          RowSpacing="15">
+
+        <!-- THANH TIM KIEM -->
+        <Grid Grid.Row="0"
+              Grid.ColumnSpan="2"
+              ColumnDefinitions="*,Auto,Auto"
+              ColumnSpacing="10">
+
+            <Border Stroke="#CBD5E1"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 8"
+                    BackgroundColor="White"
+                    Padding="10,0">
+
+                <Entry x:Name="SearchEntry"
+                       Placeholder="Tìm theo tên, mã, số điện thoại hoặc email..."
+                       TextChanged="OnSearchTextChanged"
+                       VerticalOptions="Center"/>
+            </Border>
+
+            <Button Grid.Column="1"
+                    Text="Tìm kiếm"
+                    BackgroundColor="#2563EB"
+                    TextColor="White"
+                    CornerRadius="8"
+                    Padding="20,10"
+                    Clicked="OnSearchClicked"/>
+
+            <Button Grid.Column="2"
+                    Text="Làm mới"
+                    BackgroundColor="#64748B"
+                    TextColor="White"
+                    CornerRadius="8"
+                    Padding="15,10"
+                    Clicked="OnRefreshClicked"/>
+        </Grid>
+
+        <!-- DANH SACH NHA CUNG CAP -->
+        <Border Grid.Row="1"
+                Grid.Column="0"
+                BackgroundColor="White"
+                Stroke="#E2E8F0"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 12"
+                Padding="12">
+
+            <Grid RowDefinitions="Auto,*">
+
+                <!-- TIEU DE BANG -->
+                <Grid Grid.Row="0"
+                      ColumnDefinitions="50,1.5*,1.2*,1.5*,1.5*,115"
+                      BackgroundColor="#F1F5F9"
+                      Padding="8,12">
+
+                    <Label Grid.Column="0"
+                           Text="Mã"
+                           FontAttributes="Bold"
+                           TextColor="#1E293B"/>
+
+                    <Label Grid.Column="1"
+                           Text="Tên nhà cung cấp"
+                           FontAttributes="Bold"
+                           TextColor="#1E293B"/>
+
+                    <Label Grid.Column="2"
+                           Text="Số điện thoại"
+                           FontAttributes="Bold"
+                           TextColor="#1E293B"/>
+
+                    <Label Grid.Column="3"
+                           Text="Địa chỉ"
+                           FontAttributes="Bold"
+                           TextColor="#1E293B"/>
+
+                    <Label Grid.Column="4"
+                           Text="Email"
+                           FontAttributes="Bold"
+                           TextColor="#1E293B"/>
+
+                    <Label Grid.Column="5"
+                           Text="Thao tác"
+                           FontAttributes="Bold"
+                           TextColor="#1E293B"
+                           HorizontalOptions="Center"/>
+                </Grid>
+
+                <!-- DU LIEU NHA CUNG CAP -->
+                <CollectionView Grid.Row="1"
+                                x:Name="SuppliersCollection"
+                                SelectionMode="None"
+                                Margin="0,5,0,0">
+
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate>
+
+                            <Grid ColumnDefinitions="50,1.5*,1.2*,1.5*,1.5*,115"
+                                  Padding="8,12">
+
+                                <Label Grid.Column="1"
+                                        Text="{Binding TenNCC}"
+                                        FontAttributes="Bold"
+                                        VerticalOptions="Center"
+                                        TextColor="#0F172A"
+                                        LineBreakMode="TailTruncation">
+
+                                        <Label.GestureRecognizers>
+                                            <TapGestureRecognizer Tapped="OnSupplierNameTapped"/>
+                                        </Label.GestureRecognizers>
+
+                                    </Label>
+
+                                <Label Grid.Column="1"
+                                       Text="{Binding TenNCC}"
+                                       FontAttributes="Bold"
+                                       VerticalOptions="Center"
+                                       TextColor="#0F172A"
+                                       LineBreakMode="TailTruncation"/>
+
+                                <Label Grid.Column="2"
+                                       Text="{Binding SoDienThoai}"
+                                       VerticalOptions="Center"
+                                       TextColor="#2563EB"/>
+
+                                <Label Grid.Column="3"
+                                       Text="{Binding DiaChi}"
+                                       VerticalOptions="Center"
+                                       TextColor="#475569"
+                                       LineBreakMode="TailTruncation"/>
+
+                                <Label Grid.Column="4"
+                                       Text="{Binding Email}"
+                                       VerticalOptions="Center"
+                                       TextColor="#475569"
+                                       LineBreakMode="TailTruncation"/>
+
+                                <HorizontalStackLayout Grid.Column="5"
+                                                       Spacing="5"
+                                                       HorizontalOptions="Center">
+
+                                    <Button Text="Sửa"
+                                            FontSize="12"
+                                            Padding="8,4"
+                                            HeightRequest="32"
+                                            BackgroundColor="#0EA5E9"
+                                            TextColor="White"
+                                            CornerRadius="4"
+                                            Clicked="OnEditSupplierClicked"
+                                            CommandParameter="{Binding .}"/>
+
+                                    <Button Text="Xóa"
+                                            FontSize="12"
+                                            Padding="8,4"
+                                            HeightRequest="32"
+                                            BackgroundColor="#EF4444"
+                                            TextColor="White"
+                                            CornerRadius="4"
+                                            Clicked="OnDeleteSupplierClicked"
+                                            CommandParameter="{Binding .}"/>
+                                </HorizontalStackLayout>
+
+                            </Grid>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+
+            </Grid>
+        </Border>
+
+        <!-- FORM THEM / CAP NHAT -->
+        <Border Grid.Row="1"
+                Grid.Column="1"
+                BackgroundColor="White"
+                Stroke="#E2E8F0"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 12"
+                Padding="20">
+
+            <ScrollView>
+                <VerticalStackLayout Spacing="15">
+
+                    <Label x:Name="FormTitleLabel"
+                           Text="Thêm nhà cung cấp mới"
+                           FontSize="18"
+                           FontAttributes="Bold"
+                           TextColor="#0F172A"/>
+
+                    <!-- MA NHA CUNG CAP -->
+                    <VerticalStackLayout Spacing="5">
+
+                        <Label Text="Mã nhà cung cấp (tự động):"
+                               FontSize="13"
+                               TextColor="#64748B"/>
+
+                        <Entry x:Name="MaNCCEntry"
+                               IsReadOnly="True"
+                               Placeholder="Tự động sinh mã"
+                               BackgroundColor="#F8FAFC"/>
+                    </VerticalStackLayout>
+
+                    <!-- TEN NHA CUNG CAP -->
+                    <VerticalStackLayout Spacing="5">
+
+                        <Label Text="Tên nhà cung cấp:"
+                               FontSize="13"
+                               TextColor="#1E293B"
+                               FontAttributes="Bold"/>
+
+                        <Border Stroke="#CBD5E1"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 6"
+                                Padding="8,0">
+
+                            <Entry x:Name="TenNCCEntry"
+                                   Placeholder="Nhập tên nhà cung cấp..."/>
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <!-- SO DIEN THOAI -->
+                    <VerticalStackLayout Spacing="5">
+
+                        <Label Text="Số điện thoại:"
+                               FontSize="13"
+                               TextColor="#1E293B"
+                               FontAttributes="Bold"/>
+
+                        <Border Stroke="#CBD5E1"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 6"
+                                Padding="8,0">
+
+                            <Entry x:Name="SoDienThoaiEntry"
+                                   Placeholder="Nhập số điện thoại..."
+                                   Keyboard="Telephone"/>
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <!-- DIA CHI -->
+                    <VerticalStackLayout Spacing="5">
+
+                        <Label Text="Địa chỉ:"
+                               FontSize="13"
+                               TextColor="#1E293B"
+                               FontAttributes="Bold"/>
+
+                        <Border Stroke="#CBD5E1"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 6"
+                                Padding="8,0">
+
+                            <Entry x:Name="DiaChiEntry"
+                                   Placeholder="Nhập địa chỉ..."/>
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <!-- EMAIL -->
+                    <VerticalStackLayout Spacing="5">
+
+                        <Label Text="Email:"
+                               FontSize="13"
+                               TextColor="#1E293B"
+                               FontAttributes="Bold"/>
+
+                        <Border Stroke="#CBD5E1"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 6"
+                                Padding="8,0">
+
+                            <Entry x:Name="EmailEntry"
+                                   Placeholder="Nhập email..."
+                                   Keyboard="Email"/>
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <!-- NUT LUU VA HUY -->
+                    <Grid ColumnDefinitions="*,*"
+                          ColumnSpacing="10"
+                          Margin="0,10,0,0">
+
+                        <Button x:Name="SaveButton"
+                                Grid.Column="0"
+                                Text="Lưu lại"
+                                BackgroundColor="#10B981"
+                                TextColor="White"
+                                FontAttributes="Bold"
+                                CornerRadius="6"
+                                Clicked="OnSaveSupplierClicked"/>
+
+                        <Button Grid.Column="1"
+                                Text="Hủy / Mới"
+                                BackgroundColor="#94A3B8"
+                                TextColor="White"
+                                CornerRadius="6"
+                                Clicked="OnClearFormClicked"/>
+                    </Grid>
+
+                </VerticalStackLayout>
+            </ScrollView>
+        </Border>
+
+    </Grid>
+</ContentView>

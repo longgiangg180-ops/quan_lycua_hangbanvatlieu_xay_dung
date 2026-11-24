@@ -1,3 +1,4 @@
+
 using System.ComponentModel.DataAnnotations;
 
 namespace QuanLyCuaHang.Models
@@ -23,5 +24,8 @@ namespace QuanLyCuaHang.Models
 
         [Range(0, 999999, ErrorMessage = "Số lượng tồn không hợp lệ")]
         public int SoLuongTon { get; set; } = 50; // Quản lý số lượng tồn kho
+
+        // Lưu ảnh sản phẩm dưới dạng mảng byte
+        public byte[]? AnhSanPham { get; set; }
     }
 }

@@ -1,124 +1,278 @@
-using System.Net.Http.Json;
+
+using System.Data;
+using Microsoft.Data.SqlClient;
 using QuanLyCuaHang.Models;
+using QuanLyVatLieuXayDung.Data;
 
 namespace QuanLyCuaHang.Services
 {
     public class KhachHangService
     {
-        private readonly HttpClient? _http;
-
-        // Dữ liệu mẫu khởi tạo dựa theo file Quan_ly_ban_vat_lieu.sql
-        private static readonly List<KhachHang> _mockData = new()
-        {
-            new KhachHang { MaKhachHang = 1, TenKhachHang = "Nguyễn Việt Hưng", SoDienThoai = "0354651535", DiaChi = "Hà Nội" },
-            new KhachHang { MaKhachHang = 2, TenKhachHang = "Lê Hoàng Hiệp", SoDienThoai = "0942183541", DiaChi = "Hà Nội" },
-            new KhachHang { MaKhachHang = 3, TenKhachHang = "Lê Hoàng Long Giang", SoDienThoai = "0853285123", DiaChi = "Hà Tĩnh" },
-            new KhachHang { MaKhachHang = 4, TenKhachHang = "Trần Bá Hữu", SoDienThoai = "0895813575", DiaChi = "Bắc Ninh" },
-            new KhachHang { MaKhachHang = 5, TenKhachHang = "Nguyễn Hồng Sơn", SoDienThoai = "0835186515", DiaChi = "Thái Bình" }
-        };
-
-        public KhachHangService(HttpClient? http = null)
-        {
-            _http = http;
-        }
-
-        // 1. Lấy danh sách khách hàng
+        // 1. Lấy toàn bộ danh sách khách hàng từ SQL Server
         public async Task<List<KhachHang>> GetAll()
         {
-            if (_http != null)
+            List<KhachHang> customers = new();
+
+            try
             {
-                try
+                using SqlConnection connection =
+                    DatabaseConnection.GetConnection();
+
+                await connection.OpenAsync();
+
+                string query = @"
+                    SELECT MaKhachHang, TenKhachHang,
+                           SoDienThoai, DiaChi
+                    FROM dbo.KhachHang
+                    ORDER BY MaKhachHang";
+
+                using SqlCommand command =
+                    new SqlCommand(query, connection);
+
+                using SqlDataReader reader =
+                    await command.ExecuteReaderAsync();
+
+                while (await reader.ReadAsync())
                 {
-                    var data = await _http.GetFromJsonAsync<List<KhachHang>>("api/khachhang");
-                    if (data != null && data.Count > 0) return data;
-                }
-                catch
-                {
-                    // Khi chưa có API backend đang chạy, tự động fallback về dữ liệu mẫu
+                    customers.Add(new KhachHang
+                    {
+                        MaKhachHang = reader.GetInt32(0),
+                        TenKhachHang = reader.IsDBNull(1)
+                            ? "" : reader.GetString(1),
+                        SoDienThoai = reader.IsDBNull(2)
+                            ? "" : reader.GetString(2),
+                        DiaChi = reader.IsDBNull(3)
+                            ? "" : reader.GetString(3)
+                    });
                 }
             }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    "Lỗi lấy danh sách khách hàng: " + ex.Message);
+            }
 
-            return await Task.FromResult(_mockData.OrderBy(k => k.MaKhachHang).ToList());
+            return customers;
         }
 
         // 2. Thêm khách hàng mới
         public async Task<bool> Add(KhachHang kh)
         {
-            if (_http != null)
+            try
             {
+                using SqlConnection connection =
+                    DatabaseConnection.GetConnection();
+
+                await connection.OpenAsync();
+
+                // Dùng transaction để tránh cấp trùng mã
+                using SqlTransaction transaction =
+                    (SqlTransaction)await connection.BeginTransactionAsync(
+                        IsolationLevel.Serializable);
+
                 try
                 {
-                    var res = await _http.PostAsJsonAsync("api/khachhang", kh);
-                    if (res.IsSuccessStatusCode) return true;
+                    string getIdQuery = @"
+                        SELECT ISNULL(MAX(MaKhachHang), 0) + 1
+                        FROM dbo.KhachHang WITH (UPDLOCK, HOLDLOCK)";
+
+                    int newId;
+
+                    using (SqlCommand getIdCommand =
+                        new SqlCommand(getIdQuery, connection, transaction))
+                    {
+                        newId = Convert.ToInt32(
+                            await getIdCommand.ExecuteScalarAsync());
+                    }
+
+                    string insertQuery = @"
+                        INSERT INTO dbo.KhachHang
+                            (MaKhachHang, TenKhachHang, SoDienThoai, DiaChi)
+                        VALUES
+                            (@MaKhachHang, @TenKhachHang, @SoDienThoai, @DiaChi)";
+
+                    using (SqlCommand command =
+                        new SqlCommand(insertQuery, connection, transaction))
+                    {
+                        command.Parameters.Add("@MaKhachHang",
+                            SqlDbType.Int).Value = newId;
+
+                        command.Parameters.Add("@TenKhachHang",
+                            SqlDbType.NVarChar, 200).Value = kh.TenKhachHang;
+
+                        command.Parameters.Add("@SoDienThoai",
+                            SqlDbType.VarChar, 15).Value = kh.SoDienThoai;
+
+                        command.Parameters.Add("@DiaChi",
+                            SqlDbType.NVarChar, 400).Value = kh.DiaChi;
+
+                        await command.ExecuteNonQueryAsync();
+                    }
+
+                    await transaction.CommitAsync();
+
+                    kh.MaKhachHang = newId;
+
+                    return true;
                 }
-                catch { }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw;
+                }
             }
-
-            // Tự động sinh mã nếu chưa có
-            if (kh.MaKhachHang <= 0)
+            catch (Exception ex)
             {
-                kh.MaKhachHang = _mockData.Count > 0 ? _mockData.Max(k => k.MaKhachHang) + 1 : 1;
-            }
+                System.Diagnostics.Debug.WriteLine(
+                    "Lỗi thêm khách hàng: " + ex.Message);
 
-            _mockData.Add(kh);
-            return await Task.FromResult(true);
+                return false;
+            }
         }
 
         // 3. Cập nhật thông tin khách hàng
         public async Task<bool> Update(KhachHang kh)
         {
-            if (_http != null)
+            try
             {
-                try
-                {
-                    var res = await _http.PutAsJsonAsync($"api/khachhang/{kh.MaKhachHang}", kh);
-                    if (res.IsSuccessStatusCode) return true;
-                }
-                catch { }
-            }
+                using SqlConnection connection =
+                    DatabaseConnection.GetConnection();
 
-            var index = _mockData.FindIndex(k => k.MaKhachHang == kh.MaKhachHang);
-            if (index >= 0)
-            {
-                _mockData[index] = kh;
-                return await Task.FromResult(true);
+                await connection.OpenAsync();
+
+                string query = @"
+                    UPDATE dbo.KhachHang
+                    SET TenKhachHang = @TenKhachHang,
+                        SoDienThoai = @SoDienThoai,
+                        DiaChi = @DiaChi
+                    WHERE MaKhachHang = @MaKhachHang";
+
+                using SqlCommand command =
+                    new SqlCommand(query, connection);
+
+                command.Parameters.Add("@MaKhachHang",
+                    SqlDbType.Int).Value = kh.MaKhachHang;
+
+                command.Parameters.Add("@TenKhachHang",
+                    SqlDbType.NVarChar, 200).Value = kh.TenKhachHang;
+
+                command.Parameters.Add("@SoDienThoai",
+                    SqlDbType.VarChar, 15).Value = kh.SoDienThoai;
+
+                command.Parameters.Add("@DiaChi",
+                    SqlDbType.NVarChar, 400).Value = kh.DiaChi;
+
+                int rows = await command.ExecuteNonQueryAsync();
+
+                return rows > 0;
             }
-            return await Task.FromResult(false);
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    "Lỗi cập nhật khách hàng: " + ex.Message);
+
+                return false;
+            }
         }
 
         // 4. Xóa khách hàng
         public async Task<bool> Delete(int id)
         {
-            if (_http != null)
+            try
             {
-                try
-                {
-                    var res = await _http.DeleteAsync($"api/khachhang/{id}");
-                    if (res.IsSuccessStatusCode) return true;
-                }
-                catch { }
-            }
+                using SqlConnection connection =
+                    DatabaseConnection.GetConnection();
 
-            var item = _mockData.FirstOrDefault(k => k.MaKhachHang == id);
-            if (item != null)
-            {
-                _mockData.Remove(item);
-                return await Task.FromResult(true);
+                await connection.OpenAsync();
+
+                string query = @"
+                    DELETE FROM dbo.KhachHang
+                    WHERE MaKhachHang = @MaKhachHang";
+
+                using SqlCommand command =
+                    new SqlCommand(query, connection);
+
+                command.Parameters.Add("@MaKhachHang",
+                    SqlDbType.Int).Value = id;
+
+                int rows = await command.ExecuteNonQueryAsync();
+
+                return rows > 0;
             }
-            return await Task.FromResult(false);
+            catch (SqlException ex) when (ex.Number == 547)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    "Không thể xóa khách hàng do vi phạm khóa ngoại: "
+                    + ex.Message);
+
+                throw new InvalidOperationException(
+                    "Khách hàng này đã phát sinh hóa đơn hoặc đang được dữ liệu khác tham chiếu. Không thể xóa!",
+                    ex);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    "Lỗi xóa khách hàng: " + ex.ToString());
+
+                throw;
+            }
         }
 
-        // 5. Tìm kiếm khách hàng theo tên hoặc SĐT
+        // 5. Tìm kiếm khách hàng
         public async Task<List<KhachHang>> Search(string keyword)
         {
-            var list = await GetAll();
-            if (string.IsNullOrWhiteSpace(keyword)) return list;
+            if (string.IsNullOrWhiteSpace(keyword))
+                return await GetAll();
 
-            return list.Where(k =>
-                k.TenKhachHang.Contains(keyword, StringComparison.OrdinalIgnoreCase)
-                || k.SoDienThoai.Contains(keyword)
-                || k.DiaChi.Contains(keyword, StringComparison.OrdinalIgnoreCase)
-            ).ToList();
+            List<KhachHang> customers = new();
+
+            try
+            {
+                using SqlConnection connection =
+                    DatabaseConnection.GetConnection();
+
+                await connection.OpenAsync();
+
+                string query = @"
+                    SELECT MaKhachHang, TenKhachHang,
+                           SoDienThoai, DiaChi
+                    FROM dbo.KhachHang
+                    WHERE TenKhachHang LIKE @Keyword
+                       OR SoDienThoai LIKE @Keyword
+                       OR DiaChi LIKE @Keyword
+                    ORDER BY MaKhachHang";
+
+                using SqlCommand command =
+                    new SqlCommand(query, connection);
+
+                command.Parameters.Add("@Keyword",
+                    SqlDbType.NVarChar, 400).Value =
+                    "%" + keyword.Trim() + "%";
+
+                using SqlDataReader reader =
+                    await command.ExecuteReaderAsync();
+
+                while (await reader.ReadAsync())
+                {
+                    customers.Add(new KhachHang
+                    {
+                        MaKhachHang = reader.GetInt32(0),
+                        TenKhachHang = reader.IsDBNull(1)
+                            ? "" : reader.GetString(1),
+                        SoDienThoai = reader.IsDBNull(2)
+                            ? "" : reader.GetString(2),
+                        DiaChi = reader.IsDBNull(3)
+                            ? "" : reader.GetString(3)
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(
+                    "Lỗi tìm kiếm khách hàng: " + ex.Message);
+            }
+
+            return customers;
         }
     }
 }

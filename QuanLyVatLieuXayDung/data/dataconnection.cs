@@ -5,8 +5,8 @@ namespace QuanLyVatLieuXayDung.Data
     public static class DatabaseConnection
     {
         private static readonly string connectionString =
-            "Server=.;" +
-            "Database=QuanLyCuaHang;" +
+            "Server=.\\SQLEXPRESS;" +
+            "Database=Vat_lieu_xay_dung;" +
             "Integrated Security=True;" +
             "TrustServerCertificate=True;";
 
@@ -31,7 +31,6 @@ namespace QuanLyVatLieuXayDung.Data
             {
                 System.Diagnostics.Debug.WriteLine(
                     "Lỗi kết nối database: " + ex.Message);
-
                 return false;
             }
         }

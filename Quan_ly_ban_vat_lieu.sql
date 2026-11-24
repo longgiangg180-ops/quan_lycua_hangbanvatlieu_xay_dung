@@ -210,3 +210,24 @@ SELECT * FROM HoaDon;
 SELECT * FROM PhieuNhap;
 SELECT * FROM ChiTietHoaDon;
 SELECT * FROM ChiTietPhieuNhap;
+
+SELECT
+    COLUMN_NAME,
+    DATA_TYPE,
+    COLUMNPROPERTY(
+        OBJECT_ID('dbo.SanPham'),
+        COLUMN_NAME,
+        'IsIdentity'
+    ) AS IsIdentity
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_NAME = 'SanPham';
+EXEC sp_help 'dbo.SanPham';
+
+ALTER TABLE dbo.SanPham
+ADD AnhSanPham VARBINARY(MAX) NULL;
+
+SELECT 
+    MaSanPham,
+    TenSanPham,
+    AnhSanPham
+FROM dbo.SanPham;

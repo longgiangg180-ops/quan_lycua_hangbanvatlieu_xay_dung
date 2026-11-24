@@ -1,153 +1,336 @@
-using System.Net.Http.Json;
+
+using System.Data;
+using Microsoft.Data.SqlClient;
 using QuanLyCuaHang.Models;
+using QuanLyVatLieuXayDung.Data;
 
 namespace QuanLyCuaHang.Services
 {
     public class HoaDonService
     {
-        private readonly HttpClient? _http;
-
-        // Dữ liệu mẫu khởi tạo theo file Quan_ly_ban_vat_lieu.sql
-        private static readonly List<HoaDon> _mockHoaDon = new()
-        {
-            new HoaDon { MaHoaDon = 1, MaKhachHang = 1, TenKhachHang = "Nguyễn Việt Hưng", MaNhanVien = 1, NgayLap = DateTime.Parse("2026-04-15"), PhuongThucThanhToan = "QR", TongTien = 3250000, GiamGia = 0, ThanhToan = 3250000 },
-            new HoaDon { MaHoaDon = 2, MaKhachHang = 2, TenKhachHang = "Lê Hoàng Hiệp", MaNhanVien = 2, NgayLap = DateTime.Parse("2026-04-16"), PhuongThucThanhToan = "Tiền mặt", TongTien = 330000, GiamGia = 0, ThanhToan = 330000 },
-            new HoaDon { MaHoaDon = 3, MaKhachHang = 3, TenKhachHang = "Lê Hoàng Long Giang", MaNhanVien = 3, NgayLap = DateTime.Parse("2026-04-17"), PhuongThucThanhToan = "QR", TongTien = 2640000, GiamGia = 0, ThanhToan = 2640000 },
-            new HoaDon { MaHoaDon = 4, MaKhachHang = 4, TenKhachHang = "Trần Bá Hữu", MaNhanVien = 4, NgayLap = DateTime.Parse("2026-04-18"), PhuongThucThanhToan = "Tiền mặt", TongTien = 150000, GiamGia = 0, ThanhToan = 150000 },
-            new HoaDon { MaHoaDon = 5, MaKhachHang = 5, TenKhachHang = "Nguyễn Hồng Sơn", MaNhanVien = 5, NgayLap = DateTime.Parse("2026-04-19"), PhuongThucThanhToan = "QR", TongTien = 3200000, GiamGia = 0, ThanhToan = 3200000 }
-        };
-
-        private static readonly List<ChiTietHoaDon> _mockChiTiet = new()
-        {
-            new ChiTietHoaDon { MaChiTietHD = 1, MaHoaDon = 1, MaSanPham = 1, TenSanPham = "Kính cường lực 10mm", DonViTinh = "m2", SoLuong = 5, DonGiaBan = 650000 },
-            new ChiTietHoaDon { MaChiTietHD = 2, MaHoaDon = 2, MaSanPham = 5, TenSanPham = "Thép thanh vằn D12 CB300-V", DonViTinh = "Cây", SoLuong = 2, DonGiaBan = 165000 },
-            new ChiTietHoaDon { MaChiTietHD = 3, MaHoaDon = 3, MaSanPham = 4, TenSanPham = "Xi măng Portland hỗn hợp PCB40", DonViTinh = "Bao", SoLuong = 30, DonGiaBan = 88000 },
-            new ChiTietHoaDon { MaChiTietHD = 4, MaHoaDon = 4, MaSanPham = 3, TenSanPham = "Gạch ống 4 lỗ 8x8x18", DonViTinh = "Viên", SoLuong = 125, DonGiaBan = 1200 },
-            new ChiTietHoaDon { MaChiTietHD = 5, MaHoaDon = 5, MaSanPham = 2, TenSanPham = "Bồn nước Inox 1000L Ngang", DonViTinh = "Cái", SoLuong = 1, DonGiaBan = 3200000 }
-        };
-
-        public HoaDonService(HttpClient? http = null)
-        {
-            _http = http;
-        }
-
-        // 1. Lấy danh sách hóa đơn
+        // 1. Lấy danh sách hóa đơn từ SQL Server
         public async Task<List<HoaDon>> GetAll()
         {
-            if (_http != null)
+            var danhSach = new List<HoaDon>();
+
+            const string sql = @"
+                SELECT
+                    hd.MaHoaDon,
+                    hd.MaKhachHang,
+                    kh.TenKhachHang,
+                    hd.MaNhanVien,
+                    hd.NgayLap,
+                    hd.PhuongThucThanhToan,
+                    hd.TongTien,
+                    hd.GiamGia,
+                    hd.ThanhToan
+                FROM dbo.HoaDon hd
+                LEFT JOIN dbo.KhachHang kh
+                    ON hd.MaKhachHang = kh.MaKhachHang
+                ORDER BY hd.NgayLap DESC;";
+
+            using SqlConnection connection =
+                DatabaseConnection.GetConnection();
+
+            await connection.OpenAsync();
+
+            using SqlCommand command = new SqlCommand(sql, connection);
+            using SqlDataReader reader = await command.ExecuteReaderAsync();
+
+            while (await reader.ReadAsync())
             {
-                try
+                danhSach.Add(new HoaDon
                 {
-                    var data = await _http.GetFromJsonAsync<List<HoaDon>>("api/hoadon");
-                    if (data != null && data.Count > 0) return data;
-                }
-                catch { }
+                    MaHoaDon = reader.GetInt32(reader.GetOrdinal("MaHoaDon")),
+                    MaKhachHang = reader.GetInt32(reader.GetOrdinal("MaKhachHang")),
+                    TenKhachHang = reader["TenKhachHang"] == DBNull.Value
+                        ? ""
+                        : reader["TenKhachHang"].ToString()!,
+                    MaNhanVien = reader.GetInt32(reader.GetOrdinal("MaNhanVien")),
+                    NgayLap = reader.GetDateTime(reader.GetOrdinal("NgayLap")),
+                    PhuongThucThanhToan =
+                        reader["PhuongThucThanhToan"]?.ToString() ?? "",
+                    TongTien = reader.GetDecimal(reader.GetOrdinal("TongTien")),
+                    GiamGia = reader.GetDecimal(reader.GetOrdinal("GiamGia")),
+                    ThanhToan = reader.GetDecimal(reader.GetOrdinal("ThanhToan"))
+                });
             }
 
-            return await Task.FromResult(_mockHoaDon.OrderByDescending(h => h.NgayLap).ToList());
+            return danhSach;
         }
 
-        // 2. Lấy chi tiết của một hóa đơn
-        public async Task<List<ChiTietHoaDon>> GetChiTietByHoaDonId(int maHoaDon)
+        // 2. Lấy chi tiết hóa đơn từ SQL Server
+        public async Task<List<ChiTietHoaDon>> GetChiTietByHoaDonId(
+            int maHoaDon)
         {
-            if (_http != null)
+            var danhSach = new List<ChiTietHoaDon>();
+
+            const string sql = @"
+                SELECT
+                    ct.MaChiTietHD,
+                    ct.MaHoaDon,
+                    ct.MaSanPham,
+                    sp.TenSanPham,
+                    sp.DonViTinh,
+                    ct.SoLuong,
+                    ct.DonGiaBan,
+                    ct.ThanhTien
+                FROM dbo.ChiTietHoaDon ct
+                LEFT JOIN dbo.SanPham sp
+                    ON ct.MaSanPham = sp.MaSanPham
+                WHERE ct.MaHoaDon = @MaHoaDon
+                ORDER BY ct.MaChiTietHD;";
+
+            using SqlConnection connection =
+                DatabaseConnection.GetConnection();
+
+            await connection.OpenAsync();
+
+            using SqlCommand command = new SqlCommand(sql, connection);
+
+            command.Parameters.Add("@MaHoaDon", SqlDbType.Int).Value =
+                maHoaDon;
+
+            using SqlDataReader reader = await command.ExecuteReaderAsync();
+
+            while (await reader.ReadAsync())
             {
-                try
+                danhSach.Add(new ChiTietHoaDon
                 {
-                    var data = await _http.GetFromJsonAsync<List<ChiTietHoaDon>>($"api/chitiethoadon/{maHoaDon}");
-                    if (data != null && data.Count > 0) return data;
-                }
-                catch { }
+                    MaChiTietHD = reader.GetInt32(
+                        reader.GetOrdinal("MaChiTietHD")),
+
+                    MaHoaDon = reader.GetInt32(
+                        reader.GetOrdinal("MaHoaDon")),
+
+                    MaSanPham = reader.GetInt32(
+                        reader.GetOrdinal("MaSanPham")),
+
+                    TenSanPham = reader["TenSanPham"] == DBNull.Value
+                        ? ""
+                        : reader["TenSanPham"].ToString()!,
+
+                    DonViTinh = reader["DonViTinh"] == DBNull.Value
+                        ? ""
+                        : reader["DonViTinh"].ToString()!,
+
+                    SoLuong = reader.GetInt32(
+                        reader.GetOrdinal("SoLuong")),
+
+                    DonGiaBan = reader.GetDecimal(
+                        reader.GetOrdinal("DonGiaBan")),
+
+                    
+                });
             }
 
-            return await Task.FromResult(_mockChiTiet.Where(ct => ct.MaHoaDon == maHoaDon).ToList());
+            return danhSach;
         }
 
-        // 3. Tự động tính tổng tiền hóa đơn (Chức năng 4)
-        public decimal TinhTongTien(IEnumerable<ChiTietHoaDon> chiTietList)
+        // 3. Tính tổng tiền hóa đơn
+        public decimal TinhTongTien(
+            IEnumerable<ChiTietHoaDon> chiTietList)
         {
             return chiTietList.Sum(ct => ct.ThanhTien);
         }
 
-        // 4. Kiểm tra tồn kho trước khi bán (Chức năng 5 - Kiểm tra)
-        // Trả về (true, "") nếu hợp lệ; trả về (false, "thông báo lỗi") nếu không đủ tồn kho
-        public (bool IsValid, string ErrorMessage) KiemTraTonKho(
-            IEnumerable<ChiTietHoaDon> chiTietList, 
-            IEnumerable<SanPham> danhSachSanPham)
-        {
-            foreach (var item in chiTietList)
-            {
-                var sp = danhSachSanPham.FirstOrDefault(s => s.MaSanPham == item.MaSanPham);
-                if (sp == null)
-                {
-                    return (false, $"Không tìm thấy sản phẩm có mã {item.MaSanPham} trong hệ thống.");
-                }
-
-                if (sp.SoLuongTon < item.SoLuong)
-                {
-                    return (false, $"Sản phẩm '{sp.TenSanPham}' chỉ còn tồn kho {sp.SoLuongTon} {sp.DonViTinh}, không đủ số lượng bán ({item.SoLuong})!");
-                }
-            }
-
-            return (true, string.Empty);
-        }
-
-        // 5. Lập hóa đơn bán hàng & Tự động trừ tồn kho (Chức năng 2 & 5)
-        public async Task<(bool Success, string Message, HoaDon? ResultHoaDon)> TaoHoaDon(
-            HoaDon hoaDon,
-            List<ChiTietHoaDon> chiTietList,
-            List<SanPham> danhSachSanPham)
+        // 4. Tạo hóa đơn và lưu xuống SQL Server
+        // Không còn kiểm tra hoặc trừ số lượng tồn kho
+        public async Task<(bool Success, string Message, HoaDon? ResultHoaDon)>
+            TaoHoaDon(
+                HoaDon hoaDon,
+                List<ChiTietHoaDon> chiTietList,
+                List<SanPham> danhSachSanPham)
         {
             if (chiTietList == null || chiTietList.Count == 0)
             {
-                return (false, "Hóa đơn phải có ít nhất 1 sản phẩm!", null);
+                return (false,
+                    "Hóa đơn phải có ít nhất 1 sản phẩm!",
+                    null);
             }
 
-            // Bước A: Kiểm tra tồn kho trước khi bán
-            var checkTonKho = KiemTraTonKho(chiTietList, danhSachSanPham);
-            if (!checkTonKho.IsValid)
+            using SqlConnection connection =
+                DatabaseConnection.GetConnection();
+
+            await connection.OpenAsync();
+
+            using SqlTransaction transaction =
+                connection.BeginTransaction(IsolationLevel.Serializable);
+
+            try
             {
-                return (false, checkTonKho.ErrorMessage, null);
-            }
+                // Bước A: Tính tổng tiền
+                hoaDon.TongTien = TinhTongTien(chiTietList);
 
-            // Bước B: Tự động tính tổng tiền hóa đơn
-            hoaDon.TongTien = TinhTongTien(chiTietList);
-            hoaDon.ThanhToan = hoaDon.TongTien - hoaDon.GiamGia;
-            if (hoaDon.ThanhToan < 0) hoaDon.ThanhToan = 0;
+                hoaDon.ThanhToan =
+                    hoaDon.TongTien - hoaDon.GiamGia;
 
-            // Bước C: Tự động sinh mã hóa đơn
-            hoaDon.MaHoaDon = _mockHoaDon.Count > 0 ? _mockHoaDon.Max(h => h.MaHoaDon) + 1 : 1;
-            hoaDon.NgayLap = DateTime.Now;
+                if (hoaDon.ThanhToan < 0)
+                    hoaDon.ThanhToan = 0;
 
-            // Bước D: Tự động trừ tồn kho sản phẩm sau khi bán thành công
-            foreach (var item in chiTietList)
-            {
-                var sp = danhSachSanPham.FirstOrDefault(s => s.MaSanPham == item.MaSanPham);
-                if (sp != null)
+                hoaDon.NgayLap = DateTime.Now;
+
+                // Bước B: Tự sinh mã hóa đơn
+                const string sqlMaHoaDon = @"
+                    SELECT ISNULL(MAX(MaHoaDon), 0) + 1
+                    FROM dbo.HoaDon WITH (UPDLOCK, HOLDLOCK);";
+
+                using SqlCommand cmdMaHoaDon =
+                    new SqlCommand(sqlMaHoaDon, connection, transaction);
+
+                int maHoaDon = Convert.ToInt32(
+                    await cmdMaHoaDon.ExecuteScalarAsync());
+
+                hoaDon.MaHoaDon = maHoaDon;
+
+                // Bước C: Lưu thông tin hóa đơn
+                const string sqlHoaDon = @"
+                    INSERT INTO dbo.HoaDon
+                    (
+                        MaHoaDon,
+                        MaKhachHang,
+                        MaNhanVien,
+                        NgayLap,
+                        PhuongThucThanhToan,
+                        TongTien,
+                        GiamGia,
+                        ThanhToan
+                    )
+                    VALUES
+                    (
+                        @MaHoaDon,
+                        @MaKhachHang,
+                        @MaNhanVien,
+                        @NgayLap,
+                        @PhuongThucThanhToan,
+                        @TongTien,
+                        @GiamGia,
+                        @ThanhToan
+                    );";
+
+                using SqlCommand cmdHoaDon =
+                    new SqlCommand(sqlHoaDon, connection, transaction);
+
+                cmdHoaDon.Parameters.Add("@MaHoaDon", SqlDbType.Int)
+                    .Value = hoaDon.MaHoaDon;
+
+                cmdHoaDon.Parameters.Add("@MaKhachHang", SqlDbType.Int)
+                    .Value = hoaDon.MaKhachHang;
+
+                cmdHoaDon.Parameters.Add("@MaNhanVien", SqlDbType.Int)
+                    .Value = hoaDon.MaNhanVien;
+
+                cmdHoaDon.Parameters.Add("@NgayLap", SqlDbType.DateTime)
+                    .Value = hoaDon.NgayLap;
+
+                cmdHoaDon.Parameters.Add("@PhuongThucThanhToan",
+                    SqlDbType.NVarChar, 50).Value =
+                    hoaDon.PhuongThucThanhToan;
+
+                cmdHoaDon.Parameters.Add("@TongTien", SqlDbType.Decimal)
+                    .Value = hoaDon.TongTien;
+
+                cmdHoaDon.Parameters.Add("@GiamGia", SqlDbType.Decimal)
+                    .Value = hoaDon.GiamGia;
+
+                cmdHoaDon.Parameters.Add("@ThanhToan", SqlDbType.Decimal)
+                    .Value = hoaDon.ThanhToan;
+
+                await cmdHoaDon.ExecuteNonQueryAsync();
+
+                // Bước D: Tự sinh mã chi tiết và lưu từng sản phẩm
+                const string sqlMaChiTiet = @"
+                    SELECT ISNULL(MAX(MaChiTietHD), 0) + 1
+                    FROM dbo.ChiTietHoaDon WITH (UPDLOCK, HOLDLOCK);";
+
+                using SqlCommand cmdMaChiTiet =
+                    new SqlCommand(sqlMaChiTiet, connection, transaction);
+
+                int maChiTiet = Convert.ToInt32(
+                    await cmdMaChiTiet.ExecuteScalarAsync());
+
+                const string sqlChiTiet = @"
+                    INSERT INTO dbo.ChiTietHoaDon
+                    (
+                        MaChiTietHD,
+                        MaHoaDon,
+                        MaSanPham,
+                        SoLuong,
+                        DonGiaBan,
+                        ThanhTien
+                    )
+                    VALUES
+                    (
+                        @MaChiTietHD,
+                        @MaHoaDon,
+                        @MaSanPham,
+                        @SoLuong,
+                        @DonGiaBan,
+                        @ThanhTien
+                    );";
+
+                foreach (var item in chiTietList)
                 {
-                    sp.SoLuongTon -= item.SoLuong;
+                    item.MaChiTietHD = maChiTiet;
+                    item.MaHoaDon = maHoaDon;
+
+                    using SqlCommand cmdChiTiet =
+                        new SqlCommand(sqlChiTiet, connection, transaction);
+
+                    cmdChiTiet.Parameters.Add("@MaChiTietHD", SqlDbType.Int)
+                        .Value = item.MaChiTietHD;
+
+                    cmdChiTiet.Parameters.Add("@MaHoaDon", SqlDbType.Int)
+                        .Value = item.MaHoaDon;
+
+                    cmdChiTiet.Parameters.Add("@MaSanPham", SqlDbType.Int)
+                        .Value = item.MaSanPham;
+
+                    cmdChiTiet.Parameters.Add("@SoLuong", SqlDbType.Int)
+                        .Value = item.SoLuong;
+
+                    var donGia = cmdChiTiet.Parameters.Add(
+                        "@DonGiaBan", SqlDbType.Decimal);
+                    donGia.Precision = 18;
+                    donGia.Scale = 2;
+                    donGia.Value = item.DonGiaBan;
+
+                    var thanhTien = cmdChiTiet.Parameters.Add(
+                        "@ThanhTien", SqlDbType.Decimal);
+                    thanhTien.Precision = 18;
+                    thanhTien.Scale = 2;
+                    thanhTien.Value = item.ThanhTien;
+
+                    await cmdChiTiet.ExecuteNonQueryAsync();
+
+                    maChiTiet++;
                 }
 
-                // Gán mã hóa đơn cho từng dòng chi tiết
-                item.MaHoaDon = hoaDon.MaHoaDon;
-                item.MaChiTietHD = _mockChiTiet.Count > 0 ? _mockChiTiet.Max(c => c.MaChiTietHD) + 1 : 1;
-                _mockChiTiet.Add(item);
+                // Bước E: Hoàn tất transaction
+                await transaction.CommitAsync();
+
+                hoaDon.DanhSachChiTiet =
+                    new List<ChiTietHoaDon>(chiTietList);
+
+                return (
+                    true,
+                    "Lập hóa đơn và lưu dữ liệu thành công!",
+                    hoaDon
+                );
             }
-
-            hoaDon.DanhSachChiTiet = new List<ChiTietHoaDon>(chiTietList);
-            _mockHoaDon.Add(hoaDon);
-
-            // Gửi API backend nếu có
-            if (_http != null)
+            catch (Exception ex)
             {
-                try
-                {
-                    await _http.PostAsJsonAsync("api/hoadon", hoaDon);
-                }
-                catch { }
-            }
+                await transaction.RollbackAsync();
 
-            return (true, "Lập hóa đơn và cập nhật tồn kho thành công!", hoaDon);
+                System.Diagnostics.Debug.WriteLine(
+                    "Lỗi tạo hóa đơn: " + ex.Message);
+
+                return (
+                    false,
+                    "Không thể lập hóa đơn: " + ex.Message,
+                    null
+                );
+            }
         }
     }
 }
